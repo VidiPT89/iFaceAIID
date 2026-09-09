@@ -11,6 +11,7 @@
 		3C788A0E3CB483C4E8318140 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9AF43448ACA163044A23C7B5 /* SharedKit */; };
 		4D5CE21863682B72631005BA /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059E0DA97C4BC894DDEACB72 /* CameraView.swift */; };
 		6CCB328C9973A8F218022C70 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D54C8664D0ABDB5B7CC1844 /* CameraPreviewView.swift */; };
+		B33B42633CB7864D29B55D7E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C001DA2C2F3EC0191BF9E68A /* Assets.xcassets */; };
 		DF4235BB4299C1AA4C9DE81C /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 201F543D0CFAB1C295A73230 /* App.swift */; };
 /* End PBXBuildFile section */
 
@@ -20,6 +21,7 @@
 		4A34E96DDC1C81D75E13C937 /* iFaceAIID.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iFaceAIID.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54FB38FA265DB1E9B4F96003 /* SharedKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SharedKit; path = ../SharedKit; sourceTree = SOURCE_ROOT; };
 		5D54C8664D0ABDB5B7CC1844 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		C001DA2C2F3EC0191BF9E68A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FEE28190C0931E02D1C31A28 /* CameraCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -69,11 +71,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		E59F197D5663CAE157E8C1D1 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C001DA2C2F3EC0191BF9E68A /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		EBC7AD8936E22DAE6075C90A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
 				4375E5EE6421010000ABA8FD /* App */,
 				0A227E1F085D3B1E8C62B192 /* Capture */,
+				E59F197D5663CAE157E8C1D1 /* Resources */,
 				CC940DC28A9D6F3221D0CBF7 /* Views */,
 			);
 			path = Sources;
@@ -103,6 +114,7 @@
 			buildConfigurationList = 34314CC17111D9F01C6AD3C1 /* Build configuration list for PBXNativeTarget "iFaceAIID" */;
 			buildPhases = (
 				4EFDDA100AA3B1023A2781CA /* Sources */,
+				F3E096C6EB973072725A52C0 /* Resources */,
 				9E433B2998896B7B437A51E7 /* Frameworks */,
 			);
 			buildRules = (
@@ -149,6 +161,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F3E096C6EB973072725A52C0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B33B42633CB7864D29B55D7E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4EFDDA100AA3B1023A2781CA /* Sources */ = {
