@@ -1,0 +1,24 @@
+name: iFaceAIID-Mac
+options:
+  bundleIdPrefix: dev.ividi
+packages:
+  SharedKit:
+    path: ../SharedKit
+targets:
+  iFaceAIID-Mac:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - Sources
+    info:
+      path: Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.ividi.faceaiid.mac
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ENABLE_HARDENED_RUNTIME: true
+        COMBINE_HIDPI_IMAGES: true
+    dependencies:
+      - package: SharedKit

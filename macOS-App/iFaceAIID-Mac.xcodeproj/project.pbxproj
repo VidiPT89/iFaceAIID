@@ -1,0 +1,361 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		019D298CCD3420F27F24A032 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 42B2D119B87C9BB1B109292C /* SharedKit */; };
+		698D23A9A9BCB317377F4B60 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB387F72E16C7DA7856E485 /* App.swift */; };
+		7C0B139A15083956080F39A4 /* CameraCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */; };
+		CE50D757DC3017E290061878 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */; };
+		EA53E898203E4AFAE4A99BDC /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E03735F2CE19CBB09B7B6A /* CameraView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0BB387F72E16C7DA7856E485 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		3C1AB0E07BE4DE9A05D53073 /* iFaceAIID-Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iFaceAIID-Mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3E03735F2CE19CBB09B7B6A /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureService.swift; sourceTree = "<group>"; };
+		FAFC6924BF5693A914E550F2 /* SharedKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SharedKit; path = ../SharedKit; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		17EADA1AD2B776D0ACAE7F18 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				019D298CCD3420F27F24A032 /* SharedKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		70BF982D2224E688BF990821 /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
+		9C999C8E1AC989697EB72DBF /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC6924BF5693A914E550F2 /* SharedKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		D309C38F71996B52CE69E40F = {
+			isa = PBXGroup;
+			children = (
+				9C999C8E1AC989697EB72DBF /* Packages */,
+				E0EBC4D076975D60045D0869 /* Sources */,
+				FBD4AC4FFA3F6DE9C1E2B411 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D9289CBC72B73518DE2588B1 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */,
+				C3E03735F2CE19CBB09B7B6A /* CameraView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E0EBC4D076975D60045D0869 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				F0C399053A137F3636F034D2 /* App */,
+				70BF982D2224E688BF990821 /* Capture */,
+				D9289CBC72B73518DE2588B1 /* Views */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		F0C399053A137F3636F034D2 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0BB387F72E16C7DA7856E485 /* App.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FBD4AC4FFA3F6DE9C1E2B411 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3C1AB0E07BE4DE9A05D53073 /* iFaceAIID-Mac.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9E405EE0B5F88E76DD68DE63 /* iFaceAIID-Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 42CB30D225245465129C211C /* Build configuration list for PBXNativeTarget "iFaceAIID-Mac" */;
+			buildPhases = (
+				B862439751208A9AA6CBCD89 /* Sources */,
+				17EADA1AD2B776D0ACAE7F18 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "iFaceAIID-Mac";
+			packageProductDependencies = (
+				42B2D119B87C9BB1B109292C /* SharedKit */,
+			);
+			productName = "iFaceAIID-Mac";
+			productReference = 3C1AB0E07BE4DE9A05D53073 /* iFaceAIID-Mac.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		77F37D662007B36724E941CA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = ADAA944F85FED76E60DA60E7 /* Build configuration list for PBXProject "iFaceAIID-Mac" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D309C38F71996B52CE69E40F;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D136876B6A76C20679F34D2F /* XCLocalSwiftPackageReference "../SharedKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FBD4AC4FFA3F6DE9C1E2B411 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9E405EE0B5F88E76DD68DE63 /* iFaceAIID-Mac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B862439751208A9AA6CBCD89 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				698D23A9A9BCB317377F4B60 /* App.swift in Sources */,
+				7C0B139A15083956080F39A4 /* CameraCaptureService.swift in Sources */,
+				CE50D757DC3017E290061878 /* CameraPreviewView.swift in Sources */,
+				EA53E898203E4AFAE4A99BDC /* CameraView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		62C5C836EBFF8456DFB2BF6E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		83C1C4C5BFC1106424A63113 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.ividi.faceaiid.mac;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A99311CC166FCABF1141A981 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.ividi.faceaiid.mac;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B0D4887A0ECC6264C126A23A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		42CB30D225245465129C211C /* Build configuration list for PBXNativeTarget "iFaceAIID-Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83C1C4C5BFC1106424A63113 /* Debug */,
+				A99311CC166FCABF1141A981 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ADAA944F85FED76E60DA60E7 /* Build configuration list for PBXProject "iFaceAIID-Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0D4887A0ECC6264C126A23A /* Debug */,
+				62C5C836EBFF8456DFB2BF6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		D136876B6A76C20679F34D2F /* XCLocalSwiftPackageReference "../SharedKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../SharedKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		42B2D119B87C9BB1B109292C /* SharedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 77F37D662007B36724E941CA /* Project object */;
+}
