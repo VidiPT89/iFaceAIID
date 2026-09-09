@@ -5,17 +5,19 @@ import SwiftUI
 /// connecting lines between them.
 public struct LandmarkPointsShape: Shape {
     public let points: [CGPoint]
+    public let videoSize: CGSize
     public let radius: CGFloat
 
-    public init(points: [CGPoint], radius: CGFloat = 3) {
+    public init(points: [CGPoint], videoSize: CGSize, radius: CGFloat = 3) {
         self.points = points
+        self.videoSize = videoSize
         self.radius = radius
     }
 
     public func path(in rect: CGRect) -> Path {
         var path = Path()
         for point in points {
-            let center = CGPoint(x: point.x * rect.width, y: (1 - point.y) * rect.height)
+            let center = GeometryHelpers.mapNormalizedPoint(point, videoSize: videoSize, viewSize: rect.size)
             path.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
         }
         return path

@@ -8,6 +8,8 @@ final class FaceCaptureService: NSObject, ObservableObject {
     @Published var expression: FacialExpression = .none
     @Published private(set) var faceDetected = false
     @Published var currentFaceLandmarks: VNFaceLandmarks2D?
+    @Published private(set) var currentFaceBoundingBox: CGRect = .zero
+    @Published private(set) var videoSize: CGSize = .zero
     @Published var headMovement: HeadMovement = .none
     @Published private(set) var status: CaptureStatus = .idle
     @Published var identityMatch: (name: String, distance: Float)?
@@ -115,6 +117,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                     self.currentFaceLandmarks = nil
                 }
                 tracker.reset()
+                Task { @MainActor in self.videoSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer)) }
                 return
             }
 
@@ -138,6 +141,8 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.headMovement = movement
                 self.faceDetected = true
                 self.currentFaceLandmarks = landmarks2D
+                self.currentFaceBoundingBox = face.boundingBox
+                self.videoSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
                 if shouldCheckIdentity {
                     self.identityMatch = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }
                 }

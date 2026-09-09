@@ -5,9 +5,9 @@ import Combine
 
 @MainActor
 final class CameraCaptureService: NSObject, ObservableObject {
-    @Published var gesture: DetectedGesture = .none
-    @Published var currentHand: HandLandmarks?
+    @Published var hands: [DetectedHand] = []
     @Published private(set) var status: CaptureStatus = .idle
+    @Published private(set) var videoSize: CGSize = .zero
 
     // Configuration and delegate callbacks for these three run entirely on
     // `queue`, a dedicated serial queue — never touched concurrently, just
@@ -19,7 +19,10 @@ final class CameraCaptureService: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        handRequest.maximumHandCount = 1
+        // Detect up to 2 hands — the request previously capped at 1, so a
+        // second hand in frame was silently ignored no matter how clearly
+        // it was visible.
+        handRequest.maximumHandCount = 2
     }
 
     func start() {
@@ -82,22 +85,27 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         // detection confidence).
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .leftMirrored, options: [:])
 
+        // Vision reports landmark coordinates relative to the image *after*
+        // applying the given orientation — a 90° rotation, here — so the
+        // width/height used to map those normalized points back onto the
+        // (also-rotated) preview must be swapped relative to the raw buffer.
+        let rawWidth = CVPixelBufferGetWidth(pixelBuffer)
+        let rawHeight = CVPixelBufferGetHeight(pixelBuffer)
+        let videoSize = CGSize(width: rawHeight, height: rawWidth)
+
         do {
             try handler.perform([handRequest])
-            guard let observation = handRequest.results?.first else {
-                Task { @MainActor in
-                    self.currentHand = nil
-                    self.gesture = .none
-                }
-                return
+            let observations = handRequest.results ?? []
+
+            let detectedHands: [DetectedHand] = observations.enumerated().map { index, observation in
+                let landmarks = VisionHandMapping.landmarks(from: observation)
+                let gesture = HandGestureClassifier.classify(landmarks)
+                return DetectedHand(id: index, landmarks: landmarks, gesture: gesture)
             }
 
-            let hand = VisionHandMapping.landmarks(from: observation)
-            let gesture = HandGestureClassifier.classify(hand)
-
             Task { @MainActor in
-                self.currentHand = hand
-                self.gesture = gesture
+                self.hands = detectedHands
+                self.videoSize = videoSize
             }
         } catch {
             // Best-effort per-frame detection; a single failed frame is not fatal.

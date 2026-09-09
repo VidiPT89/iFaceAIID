@@ -25,9 +25,13 @@ struct FaceView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
                     if let faceLandmarks = capture.currentFaceLandmarks {
-                        let mesh = FaceMeshOverlayShape(landmarks: faceLandmarks)
+                        let mesh = FaceMeshOverlayShape(
+                            landmarks: faceLandmarks,
+                            boundingBox: capture.currentFaceBoundingBox,
+                            videoSize: capture.videoSize
+                        )
                         mesh.stroke(BrandColor.accent, lineWidth: 1.5)
-                        LandmarkPointsShape(points: mesh.allPoints, radius: 1.5)
+                        LandmarkPointsShape(points: mesh.allPoints, videoSize: capture.videoSize, radius: 1.5)
                             .fill(BrandColor.accentSecondary)
                     }
                 } else {

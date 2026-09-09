@@ -18,4 +18,35 @@ public enum GeometryHelpers {
         let cosAngle = min(1, max(-1, dot / (mag1 * mag2)))
         return acos(cosAngle) * 180 / .pi
     }
+
+    /// Maps a Vision-normalized point (0...1, origin bottom-left) into the
+    /// coordinates of a SwiftUI view of `viewSize` showing a video of
+    /// `videoSize` with `.resizeAspectFill` gravity (the same gravity
+    /// `AVCaptureVideoPreviewLayer` is configured with here) — i.e. the video
+    /// is uniformly scaled up until it fully covers the view, then centered,
+    /// cropping whatever overflows on one axis.
+    ///
+    /// Landmark overlays must replicate this exact transform, or their
+    /// points drift away from the visible video whenever the camera's native
+    /// aspect ratio doesn't match the view's aspect ratio (the previous,
+    /// naive `point.x * viewSize.width` mapping assumed a 1:1 stretch, which
+    /// only happens to be correct when both aspect ratios match by chance).
+    public static func mapNormalizedPoint(_ point: CGPoint, videoSize: CGSize, viewSize: CGSize) -> CGPoint {
+        guard videoSize.width > 0, videoSize.height > 0, viewSize.width > 0, viewSize.height > 0 else {
+            return CGPoint(x: point.x * viewSize.width, y: (1 - point.y) * viewSize.height)
+        }
+
+        let scale = max(viewSize.width / videoSize.width, viewSize.height / videoSize.height)
+        let scaledWidth = videoSize.width * scale
+        let scaledHeight = videoSize.height * scale
+        let offsetX = (viewSize.width - scaledWidth) / 2
+        let offsetY = (viewSize.height - scaledHeight) / 2
+
+        // Vision's normalized space has its origin at the bottom-left; flip
+        // to top-left before scaling into view space.
+        let videoX = point.x * videoSize.width
+        let videoY = (1 - point.y) * videoSize.height
+
+        return CGPoint(x: videoX * scale + offsetX, y: videoY * scale + offsetY)
+    }
 }

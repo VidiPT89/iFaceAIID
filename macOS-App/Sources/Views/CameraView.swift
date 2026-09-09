@@ -22,10 +22,10 @@ struct CameraView: View {
                     CameraPreviewView(session: capture.session)
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-                    if let hand = capture.currentHand {
-                        HandOverlayShape(hand: hand)
+                    ForEach(capture.hands) { hand in
+                        HandOverlayShape(hand: hand.landmarks, videoSize: capture.videoSize)
                             .stroke(BrandColor.accent, lineWidth: 3)
-                        LandmarkPointsShape(points: hand.allLocations)
+                        LandmarkPointsShape(points: hand.landmarks.allLocations, videoSize: capture.videoSize)
                             .fill(BrandColor.accentSecondary)
                     }
                 } else {
@@ -37,7 +37,7 @@ struct CameraView: View {
                 if isRunning {
                     VStack {
                         HStack {
-                            Text("hand: \(capture.currentHand != nil ? "yes" : "no")")
+                            Text("hands: \(capture.hands.count)")
                                 .font(.system(.caption2, design: .monospaced))
                                 .padding(4)
                                 .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
@@ -51,17 +51,18 @@ struct CameraView: View {
 
                 VStack {
                     Spacer()
-                    if isRunning, capture.gesture != .none {
-                        Text(localization.string(capture.gesture.localizedKey))
-                            .font(.headline)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(BrandColor.gradient, in: Capsule())
-                            .foregroundStyle(.black)
-                            .padding(.bottom, 16)
-                            .transition(.scale.combined(with: .opacity))
-                            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: capture.gesture)
+                    HStack(spacing: 8) {
+                        ForEach(capture.hands.filter { $0.gesture != .none }) { hand in
+                            Text(localization.string(hand.gesture.localizedKey))
+                                .font(.headline)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(BrandColor.gradient, in: Capsule())
+                                .foregroundStyle(.black)
+                        }
                     }
+                    .padding(.bottom, 16)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.7), value: capture.hands.map(\.gesture))
                 }
             }
             .aspectRatio(4 / 3, contentMode: .fit)

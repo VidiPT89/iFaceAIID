@@ -8,6 +8,8 @@ final class FaceCaptureService: NSObject, ObservableObject {
     @Published var expression: FacialExpression = .none
     @Published private(set) var faceDetected = false
     @Published var currentFaceLandmarks: VNFaceLandmarks2D?
+    @Published private(set) var currentFaceBoundingBox: CGRect = .zero
+    @Published private(set) var videoSize: CGSize = .zero
     @Published var headMovement: HeadMovement = .none
     @Published private(set) var status: CaptureStatus = .idle
     @Published var identityMatch: (name: String, distance: Float)?
@@ -109,6 +111,14 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         // detection confidence).
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .leftMirrored, options: [:])
 
+        // See the matching comment in CameraCaptureService.swift: Vision's
+        // coordinates are relative to the image after the 90° rotation
+        // implied by .leftMirrored, so width/height must be swapped
+        // relative to the raw buffer to correctly map back onto the preview.
+        let rawWidth = CVPixelBufferGetWidth(pixelBuffer)
+        let rawHeight = CVPixelBufferGetHeight(pixelBuffer)
+        let videoSize = CGSize(width: rawHeight, height: rawWidth)
+
         do {
             try handler.perform([faceRequest])
             guard let face = faceRequest.results?.first, let landmarks2D = face.landmarks else {
@@ -118,6 +128,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                     self.identityMatch = nil
                     self.faceDetected = false
                     self.currentFaceLandmarks = nil
+                    self.videoSize = videoSize
                 }
                 tracker.reset()
                 return
@@ -143,6 +154,8 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.headMovement = movement
                 self.faceDetected = true
                 self.currentFaceLandmarks = landmarks2D
+                self.currentFaceBoundingBox = face.boundingBox
+                self.videoSize = videoSize
                 if shouldCheckIdentity {
                     self.identityMatch = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }
                 }
