@@ -64,7 +64,7 @@ struct CameraView: View {
                     Spacer()
                     HStack(spacing: 8) {
                         ForEach(capture.hands.filter { $0.gesture != .none }) { hand in
-                            Text(handLabel(for: hand))
+                            Text(hand.localizedLabel(using: localization))
                                 .font(.headline)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
@@ -103,11 +103,5 @@ struct CameraView: View {
         case .failed: return localization.string(.cameraError)
         case .idle, .running: return localization.string(.cameraPermission)
         }
-    }
-
-    private func handLabel(for hand: DetectedHand) -> String {
-        let gestureText = localization.string(hand.gesture.localizedKey)
-        guard let key = hand.handedness.localizedKey else { return gestureText }
-        return "\(localization.string(key)) — \(gestureText)"
     }
 }

@@ -30,6 +30,18 @@ extension Handedness {
     }
 }
 
+extension DetectedHand {
+    /// "Left hand — Open palm" (or just the gesture text when handedness is
+    /// unknown) — shared by the iOS and macOS `CameraView`s, which were
+    /// previously duplicating this exact formatting.
+    @MainActor
+    public func localizedLabel(using localization: LocalizationManager) -> String {
+        let gestureText = localization.string(gesture.localizedKey)
+        guard let key = handedness.localizedKey else { return gestureText }
+        return "\(localization.string(key)) — \(gestureText)"
+    }
+}
+
 extension FacialExpression {
     public var localizedKey: LocalizedKey {
         switch self {
