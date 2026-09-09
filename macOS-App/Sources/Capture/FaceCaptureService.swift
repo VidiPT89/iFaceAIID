@@ -108,8 +108,11 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             guard let face = faceRequest.results?.first, let landmarks2D = face.landmarks else {
                 Task { @MainActor in
                     self.expression = .none
+                    self.headMovement = .none
+                    self.identityMatch = nil
                     self.faceDetected = false
                 }
+                tracker.reset()
                 return
             }
 
