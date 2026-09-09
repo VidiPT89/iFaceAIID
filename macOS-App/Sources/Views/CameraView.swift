@@ -48,11 +48,16 @@ struct CameraView: View {
                 if isRunning {
                     VStack {
                         HStack {
-                            Text("hands: \(capture.hands.count)")
-                                .font(.system(.caption2, design: .monospaced))
-                                .padding(4)
-                                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
-                                .foregroundStyle(.white)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("hands: \(capture.hands.count)")
+                                if let debug = capture.hands.first.flatMap({ HandGestureClassifier.debugInfo($0.landmarks) }) {
+                                    Text("thumb \(Int(debug.thumbAngle))° (\(debug.thumbExtended ? "out" : "in")) · pinch \(String(format: "%.2f", debug.pinch))")
+                                }
+                            }
+                            .font(.system(.caption2, design: .monospaced))
+                            .padding(4)
+                            .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                            .foregroundStyle(.white)
                             Spacer()
                         }
                         Spacer()

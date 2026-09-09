@@ -13,6 +13,16 @@ import CoreGraphics
 /// baseline live and classifying relative to it.
 public final class ExpressionBaselineTracker {
     private var baseline: ExpressionScores?
+    /// A fast-moving average of the raw scores, recomputed every frame.
+    /// Vision's landmark positions jitter noticeably frame-to-frame even on
+    /// a perfectly still, neutral face — classifying straight off the raw
+    /// per-frame values let that jitter alone cross the (very small) delta
+    /// thresholds and flip the badge between expressions with no real
+    /// change in the face. Smoothing first removes that noise; the slower
+    /// baseline below tracks genuine drift (lighting, pose, a different
+    /// person) on top of the smoothed signal.
+    private var smoothed: ExpressionScores?
+    private let smoothRate: CGFloat = 0.35
     /// How fast the baseline drifts toward frames classified as neutral.
     /// Slow enough that a brief expression doesn't get "absorbed" into the
     /// baseline mid-hold, fast enough to track real drift (lighting,
@@ -23,30 +33,45 @@ public final class ExpressionBaselineTracker {
 
     public func reset() {
         baseline = nil
+        smoothed = nil
     }
 
     public func classify(_ scores: ExpressionScores) -> FacialExpression {
-        guard let base = baseline else {
+        guard let previousSmoothed = smoothed else {
             // First frame after (re)starting: nothing to compare against
-            // yet, so seed the baseline directly rather than guessing.
+            // yet, so seed both trackers directly rather than guessing.
+            smoothed = scores
             baseline = scores
             return .none
         }
 
-        let liftDelta = scores.mouthCornerLift - base.mouthCornerLift
-        let openDelta = scores.mouthOpenAmount - base.mouthOpenAmount
-        let eyeDelta = scores.eyeOpenRatio - base.eyeOpenRatio
-        let browDelta = scores.browRaise - base.browRaise
+        let s = ExpressionScores(
+            mouthCornerLift: previousSmoothed.mouthCornerLift + (scores.mouthCornerLift - previousSmoothed.mouthCornerLift) * smoothRate,
+            mouthOpenAmount: previousSmoothed.mouthOpenAmount + (scores.mouthOpenAmount - previousSmoothed.mouthOpenAmount) * smoothRate,
+            eyeOpenRatio: previousSmoothed.eyeOpenRatio + (scores.eyeOpenRatio - previousSmoothed.eyeOpenRatio) * smoothRate,
+            browRaise: previousSmoothed.browRaise + (scores.browRaise - previousSmoothed.browRaise) * smoothRate
+        )
+        smoothed = s
 
-        let mouthOpen = openDelta > 0.03
-        let eyesClosed = eyeDelta < -0.08
-        let browRaised = browDelta > 0.02
-        let browLowered = browDelta < -0.015
+        guard let base = baseline else {
+            baseline = s
+            return .none
+        }
+
+        let liftDelta = s.mouthCornerLift - base.mouthCornerLift
+        let openDelta = s.mouthOpenAmount - base.mouthOpenAmount
+        let eyeDelta = s.eyeOpenRatio - base.eyeOpenRatio
+        let browDelta = s.browRaise - base.browRaise
+
+        let mouthOpen = openDelta > 0.045
+        let eyesClosed = eyeDelta < -0.12
+        let browRaised = browDelta > 0.035
+        let browLowered = browDelta < -0.03
 
         let surprised = browRaised && mouthOpen
-        let angry = browLowered && !mouthOpen
-        let sad = liftDelta < -0.0015 && !browRaised
-        let smile = liftDelta > 0.0015 && !mouthOpen
+        let angry = browLowered && !mouthOpen && !browRaised
+        let sad = liftDelta < -0.006 && !browRaised
+        let smile = liftDelta > 0.006 && !mouthOpen
 
         let expression: FacialExpression
         if surprised {

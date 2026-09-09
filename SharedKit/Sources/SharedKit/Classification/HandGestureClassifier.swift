@@ -1,5 +1,14 @@
 import CoreGraphics
 
+/// Raw numbers behind the thumb/pinch-dependent gestures, exposed for a
+/// debug overlay — the same "show real numbers instead of guessing again"
+/// approach already used for facial expression scores.
+public struct HandDebugInfo: Sendable {
+    public let thumbAngle: CGFloat
+    public let thumbExtended: Bool
+    public let pinch: CGFloat
+}
+
 /// Classifies a `HandLandmarks` snapshot into one of the supported gestures.
 ///
 /// Finger "extended" state is determined by the angle at the PIP joint
@@ -9,6 +18,27 @@ import CoreGraphics
 /// original approach here), which only works reliably when the hand is held
 /// upright and flat to the camera — a real source of missed detections.
 public enum HandGestureClassifier {
+    /// The thumb's own joint doesn't straighten out as close to 180° as the
+    /// other fingers' PIP joints do even when genuinely held straight out
+    /// (thumbs up, an "L" shape, shaka) — a real thumb has less range of
+    /// motion there. Using the same 140° bar as the other fingers
+    /// under-detects a clearly-extended thumb, silently breaking every
+    /// gesture that depends on it (L, shaka, "I love you", thumbs up/down).
+    private static let thumbExtendAngle: CGFloat = 120
+
+    public static func debugInfo(_ hand: HandLandmarks) -> HandDebugInfo? {
+        guard let thumbTip = hand.point(.thumbTip)?.location,
+              let thumbIp = hand.point(.thumbIP)?.location,
+              let thumbCmc = hand.point(.thumbCMC)?.location,
+              let indexTip = hand.point(.indexTip)?.location,
+              let wrist = hand.point(.wrist)?.location,
+              let middleMcp = hand.point(.middleMCP)?.location else { return nil }
+        let angle = GeometryHelpers.angleAtVertex(thumbCmc, vertex: thumbIp, thumbTip)
+        let handScale = GeometryHelpers.distance(wrist, middleMcp)
+        let pinch = handScale > 0 ? GeometryHelpers.distance(thumbTip, indexTip) / handScale : 1
+        return HandDebugInfo(thumbAngle: angle, thumbExtended: angle > thumbExtendAngle, pinch: pinch)
+    }
+
     public static func classify(_ hand: HandLandmarks) -> DetectedGesture {
         let fingers: [(tip: HandLandmarks.Joint, pip: HandLandmarks.Joint, mcp: HandLandmarks.Joint)] = [
             (.thumbTip, .thumbIP, .thumbCMC),
@@ -18,12 +48,12 @@ public enum HandGestureClassifier {
             (.littleTip, .littlePIP, .littleMCP),
         ]
 
-        let extended: [Bool] = fingers.map { finger in
+        let extended: [Bool] = fingers.enumerated().map { i, finger in
             guard let tip = hand.point(finger.tip)?.location,
                   let pip = hand.point(finger.pip)?.location,
                   let mcp = hand.point(finger.mcp)?.location else { return false }
             let angle = GeometryHelpers.angleAtVertex(mcp, vertex: pip, tip)
-            return angle > 140
+            return angle > (i == 0 ? thumbExtendAngle : 140)
         }
 
         let thumbExtended = extended[0]
@@ -46,7 +76,7 @@ public enum HandGestureClassifier {
             let handScale = GeometryHelpers.distance(wrist, middleMcp)
             if handScale > 0 {
                 let pinch = GeometryHelpers.distance(thumbTip, indexTip) / handScale
-                if pinch < 0.18, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+                if pinch < 0.22, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
                     return .letterO
                 }
             }
