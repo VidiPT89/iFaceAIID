@@ -25,6 +25,10 @@ public enum HandGestureClassifier {
         }
 
         let thumbExtended = extended[0]
+        let indexExtended = extended[1]
+        let middleExtended = extended[2]
+        let ringExtended = extended[3]
+        let pinkyExtended = extended[4]
         let nonThumbExtendedCount = extended[1...].filter { $0 }.count
 
         if thumbExtended, nonThumbExtendedCount == 0,
@@ -37,6 +41,14 @@ public enum HandGestureClassifier {
 
         if nonThumbExtendedCount == 4 {
             return .openPalm
+        }
+
+        if indexExtended, middleExtended, !ringExtended, !pinkyExtended {
+            return .peaceSign
+        }
+
+        if indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+            return .pointing
         }
 
         if !thumbExtended, nonThumbExtendedCount == 0 {

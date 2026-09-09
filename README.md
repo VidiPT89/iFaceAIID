@@ -6,14 +6,23 @@
 
 ## ✨ Features
 
-- ✅ Live hand gesture recognition — thumbs up, open palm, closed fist — via `VNDetectHumanHandPoseRequest`
-- ✅ 100% on-device processing — no video ever leaves the Mac or the iPhone
+- ✅ Live hand gesture recognition — thumbs up, open palm, closed fist, peace sign, pointing — via `VNDetectHumanHandPoseRequest`
+- ✅ Facial expression recognition — smile, sad, surprised, angry, blinking — via `VNDetectFaceLandmarksRequest` heuristics
+- ✅ Head movement recognition — nodding yes, shaking no, head tilt — from Vision's roll/yaw/pitch
+- ✅ Approximate face identification — register a face and get recognized afterwards, using Vision's `VNGenerateImageFeaturePrintRequest` (no bundled third-party model; less precise than the web app's dedicated face-recognition net — see note below)
+- ✅ 100% on-device processing — no video or biometric data ever leaves the Mac or the iPhone
 - ✅ Shared `SharedKit` Swift package — one classification core for both native apps
-- ✅ Animated hand-landmark overlay drawn live over the camera preview
+- ✅ Animated hand-landmark and face-contour overlays drawn live over the camera preview
 - ✅ Fluid SwiftUI animations, including an animated splash screen
 - ✅ Runtime language switch — Português (PT-PT) and English
 - ✅ Dark mode, Light mode, and System mode
 - ✅ Custom color identity inspired by [ividi.dev](https://ividi.dev/) — burnt orange, amber and near-black
+
+> **Note on face identification:** Apple doesn't expose a public, dedicated face-recognition API (unlike
+> Face ID itself, which is private to the system). This app approximates it with Vision's general-purpose
+> `VNGenerateImageFeaturePrintRequest` on the cropped face region — a reasonable, dependency-free
+> approximation, but noticeably less accurate across different lighting/angles than the web app's
+> face-api.js-based identification.
 
 ## 🛠️ Tech Stack
 
@@ -46,9 +55,14 @@ Select the corresponding scheme and run on a simulator or device.
 
 ## 📖 Usage
 
-Launch either app, allow the camera permission prompt, and show your hand to the camera. The app draws
-the detected hand landmarks live and surfaces the recognized gesture (👍 thumbs up, ✋ open palm, ✊ closed
-fist) in an animated badge. Switch language and appearance at any time from the toolbar.
+Launch either app and switch between **Hands** and **Face** with the segmented control at the top:
+
+- **Hands**: show a hand shape to get 👍 / ✋ / ✊ / ✌️ / ☝️ recognized in an animated badge, with the hand
+  skeleton drawn live over the feed.
+- **Face**: smile, frown, look surprised, nod or shake your head for expression/head-movement badges; type
+  a name and tap **Register face** to store it, then get recognized (or "not recognized") live.
+
+Switch language and appearance at any time from the toolbar.
 
 ## 🧪 Testing
 

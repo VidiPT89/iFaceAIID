@@ -9,14 +9,6 @@ struct CameraView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            HStack {
-                Text(localization.string(.appTitle))
-                    .font(.system(.title2, design: .rounded, weight: .bold))
-                Spacer()
-                ControlsBar()
-            }
-            .padding(.horizontal)
-
             Text(localization.string(.heroSubtitle))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -101,6 +93,8 @@ struct CameraView: View {
         case .thumbsUp: return localization.string(.gestureThumbsUp)
         case .openPalm: return localization.string(.gestureOpenPalm)
         case .closedFist: return localization.string(.gestureClosedFist)
+        case .peaceSign: return localization.string(.gesturePeaceSign)
+        case .pointing: return localization.string(.gesturePointing)
         case .none: return localization.string(.gestureNone)
         }
     }

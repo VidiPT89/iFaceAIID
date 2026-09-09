@@ -9,7 +9,7 @@ struct FaceAIIDApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                CameraView()
+                RootView()
                 if showSplash {
                     SplashView { showSplash = false }
                         .transition(.opacity)

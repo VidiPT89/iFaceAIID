@@ -9,13 +9,6 @@ struct CameraView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            HStack {
-                Text(localization.string(.appTitle))
-                    .font(.system(.title2, design: .rounded, weight: .bold))
-                Spacer()
-                ControlsBar()
-            }
-
             Text(localization.string(.heroSubtitle))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -72,17 +65,7 @@ struct CameraView: View {
                     .background(BrandColor.gradient, in: Capsule())
             }
             .buttonStyle(.plain)
-
-            VStack(spacing: 4) {
-                Text(localization.string(.footerPrivacy))
-                Text(localization.string(.footerDevelopedBy) + " David Arsénio Martins")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
         }
-        .padding(24)
-        .frame(minWidth: 560, minHeight: 620)
     }
 
     private var placeholderText: String {
@@ -98,6 +81,8 @@ struct CameraView: View {
         case .thumbsUp: return localization.string(.gestureThumbsUp)
         case .openPalm: return localization.string(.gestureOpenPalm)
         case .closedFist: return localization.string(.gestureClosedFist)
+        case .peaceSign: return localization.string(.gesturePeaceSign)
+        case .pointing: return localization.string(.gesturePointing)
         case .none: return localization.string(.gestureNone)
         }
     }
