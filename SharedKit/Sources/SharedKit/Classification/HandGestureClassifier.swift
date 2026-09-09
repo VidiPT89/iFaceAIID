@@ -33,6 +33,31 @@ public enum HandGestureClassifier {
         let pinkyExtended = extended[4]
         let nonThumbExtendedCount = extended[1...].filter { $0 }.count
 
+        // ASL/LGP fingerspelling letter "O": thumb and index tips pinched
+        // together into a circle, the other three fingers curled. Checked
+        // first, before closedFist would otherwise claim this shape. The
+        // pinch distance is normalized by wrist-to-middle-MCP distance
+        // (hand scale) so it stays correct regardless of hand-to-camera
+        // distance.
+        if let thumbTip = hand.point(.thumbTip)?.location,
+           let indexTip = hand.point(.indexTip)?.location,
+           let wrist = hand.point(.wrist)?.location,
+           let middleMcp = hand.point(.middleMCP)?.location {
+            let handScale = GeometryHelpers.distance(wrist, middleMcp)
+            if handScale > 0 {
+                let pinch = GeometryHelpers.distance(thumbTip, indexTip) / handScale
+                if pinch < 0.25, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+                    return .letterO
+                }
+            }
+        }
+
+        // ASL/LGP fingerspelling letter "L": thumb and index extended,
+        // other three fingers closed.
+        if thumbExtended, indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+            return .letterL
+        }
+
         if thumbExtended, nonThumbExtendedCount == 0,
            let thumbTip = hand.point(.thumbTip)?.location,
            let thumbMcp = hand.point(.thumbCMC)?.location {

@@ -32,6 +32,8 @@ public enum LocalizedKey: String {
     case gestureThreeFingers
     case gestureShaka
     case gestureILoveYou
+    case gestureLetterL
+    case gestureLetterO
     case handLeft
     case handRight
     case footerPrivacy
@@ -76,6 +78,8 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureThreeFingers: "Três dedos (W) 🤟",
         .gestureShaka: "Shaka 🤙",
         .gestureILoveYou: "Amo-te (LGP/ASL) 🤟",
+        .gestureLetterL: "Letra L (LGP/ASL) 👆",
+        .gestureLetterO: "Letra O (LGP/ASL) 👌",
         .handLeft: "Mão esquerda",
         .handRight: "Mão direita",
         .footerPrivacy: "Privacidade em primeiro lugar: o vídeo nunca sai do dispositivo.",
@@ -118,6 +122,8 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureThreeFingers: "Three fingers (W) 🤟",
         .gestureShaka: "Shaka 🤙",
         .gestureILoveYou: "I love you (ASL/LGP) 🤟",
+        .gestureLetterL: "Letter L (ASL/LGP) 👆",
+        .gestureLetterO: "Letter O (ASL/LGP) 👌",
         .handLeft: "Left hand",
         .handRight: "Right hand",
         .footerPrivacy: "Privacy first: video never leaves the device.",

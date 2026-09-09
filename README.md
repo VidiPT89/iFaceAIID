@@ -7,12 +7,15 @@
 ## ✨ Features
 
 - ✅ Live hand gesture recognition for up to 2 hands at once, each labeled as your left/right hand — thumbs
-  up/down, open palm, closed fist, peace sign, pointing, three fingers (W), shaka, and the ASL/LGP "I love
-  you" sign — via `VNDetectHumanHandPoseRequest`. This is a curated set of static hand shapes, **not** full
-  sign-language recognition (which needs a sequence model tracking movement over time)
+  up/down, open palm, closed fist, peace sign, pointing, three fingers (W), shaka, the ASL/LGP "I love
+  you" sign, and the fingerspelling letters L and O — via `VNDetectHumanHandPoseRequest`. This is a curated
+  set of static hand shapes, **not** full sign-language recognition (which needs a sequence model tracking
+  movement over time — most fingerspelling letters, e.g. J or Z, also need motion and aren't included)
 - ✅ Natural "mirror" camera preview on both platforms (iOS mirrors automatically; macOS cameras don't
   auto-mirror like a front-facing iPhone camera does, so it's mirrored explicitly to match)
 - ✅ Facial expression recognition — smile, sad, surprised, angry, blinking — via `VNDetectFaceLandmarksRequest` heuristics
+- ✅ Full head area shown as detected (forehead to chin), not just the eyes/nose/mouth mesh — Vision's landmark
+  points never reach the forehead or hairline, so the whole head bounding box is drawn alongside the fine mesh
 - ✅ Head movement recognition — nodding yes, shaking no, head tilt — from Vision's roll/yaw/pitch
 - ✅ Approximate face identification — register a face and get recognized afterwards, using Vision's `VNGenerateImageFeaturePrintRequest` (no bundled third-party model; less precise than the web app's dedicated face-recognition net — see note below)
 - ✅ 100% on-device processing — no video or biometric data ever leaves the Mac or the iPhone

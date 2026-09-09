@@ -26,6 +26,12 @@ struct FaceView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
                     if let faceLandmarks = capture.currentFaceLandmarks {
+                        // Vision's landmark regions never reach the forehead
+                        // or hairline, so the full head box is drawn first
+                        // to show the whole detected head area (chin to
+                        // forehead), then the fine mesh on top of it.
+                        HeadBoundingBoxShape(boundingBox: capture.currentFaceBoundingBox, videoSize: capture.videoSize)
+                            .stroke(BrandColor.accent.opacity(0.5), lineWidth: 1.5)
                         let mesh = FaceMeshOverlayShape(
                             landmarks: faceLandmarks,
                             boundingBox: capture.currentFaceBoundingBox,
