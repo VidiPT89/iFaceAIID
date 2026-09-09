@@ -59,6 +59,7 @@ public final class FaceIdentityStore: ObservableObject {
 
     public func register(name: String, observation: VNFeaturePrintObservation) {
         guard let data = try? NSKeyedArchiver.archivedData(withRootObject: observation, requiringSecureCoding: true) else { return }
+        knownFaces.removeAll { $0.name == name }
         knownFaces.append(KnownFacePrint(name: name, data: data))
         save()
     }

@@ -35,10 +35,10 @@ struct FaceView: View {
                     if isRunning {
                         HStack(spacing: 8) {
                             if capture.expression != .none {
-                                badge(expressionLabel(capture.expression))
+                                badge(localization.string(capture.expression.localizedKey))
                             }
                             if capture.headMovement != .none {
-                                badge(headLabel(capture.headMovement))
+                                badge(localization.string(capture.headMovement.localizedKey))
                             }
                         }
                         if let match = capture.identityMatch {
@@ -121,26 +121,6 @@ struct FaceView: View {
         case .denied: return localization.string(.cameraPermission)
         case .failed: return localization.string(.cameraError)
         case .idle, .running: return localization.string(.cameraPermission)
-        }
-    }
-
-    private func expressionLabel(_ expression: FacialExpression) -> String {
-        switch expression {
-        case .smile: return localization.string(.expressionSmile)
-        case .sad: return localization.string(.expressionSad)
-        case .surprised: return localization.string(.expressionSurprised)
-        case .angry: return localization.string(.expressionAngry)
-        case .blink: return localization.string(.expressionBlink)
-        case .none: return localization.string(.expressionNone)
-        }
-    }
-
-    private func headLabel(_ movement: HeadMovement) -> String {
-        switch movement {
-        case .nodYes: return localization.string(.headNodYes)
-        case .shakeNo: return localization.string(.headShakeNo)
-        case .tilt: return localization.string(.headTilt)
-        case .none: return localization.string(.headNone)
         }
     }
 }

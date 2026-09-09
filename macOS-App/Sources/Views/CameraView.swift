@@ -35,7 +35,7 @@ struct CameraView: View {
                 VStack {
                     Spacer()
                     if isRunning, capture.gesture != .none {
-                        Text(gestureLabel(capture.gesture))
+                        Text(localization.string(capture.gesture.localizedKey))
                             .font(.headline)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
@@ -73,17 +73,6 @@ struct CameraView: View {
         case .denied: return localization.string(.cameraPermission)
         case .failed: return localization.string(.cameraError)
         case .idle, .running: return localization.string(.cameraPermission)
-        }
-    }
-
-    private func gestureLabel(_ gesture: DetectedGesture) -> String {
-        switch gesture {
-        case .thumbsUp: return localization.string(.gestureThumbsUp)
-        case .openPalm: return localization.string(.gestureOpenPalm)
-        case .closedFist: return localization.string(.gestureClosedFist)
-        case .peaceSign: return localization.string(.gesturePeaceSign)
-        case .pointing: return localization.string(.gesturePointing)
-        case .none: return localization.string(.gestureNone)
         }
     }
 }
