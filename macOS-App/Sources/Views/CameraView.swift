@@ -4,7 +4,8 @@ import SharedKit
 struct CameraView: View {
     @StateObject private var capture = CameraCaptureService()
     @ObservedObject private var localization = LocalizationManager.shared
-    @State private var isRunning = false
+
+    private var isRunning: Bool { capture.status == .running }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -33,7 +34,7 @@ struct CameraView: View {
                             .stroke(BrandColor.accent, lineWidth: 3)
                     }
                 } else {
-                    Text(localization.string(.cameraPermission))
+                    Text(placeholderText)
                         .foregroundStyle(.secondary)
                         .padding()
                 }
@@ -59,10 +60,8 @@ struct CameraView: View {
             Button {
                 if isRunning {
                     capture.stop()
-                    isRunning = false
                 } else {
                     capture.start()
-                    isRunning = true
                 }
             } label: {
                 Text(isRunning ? localization.string(.cameraStop) : localization.string(.cameraStart))
@@ -84,6 +83,14 @@ struct CameraView: View {
         }
         .padding(24)
         .frame(minWidth: 560, minHeight: 620)
+    }
+
+    private var placeholderText: String {
+        switch capture.status {
+        case .denied: return localization.string(.cameraPermission)
+        case .failed: return localization.string(.cameraError)
+        case .idle, .running: return localization.string(.cameraPermission)
+        }
     }
 
     private func gestureLabel(_ gesture: DetectedGesture) -> String {

@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Vision
 import SharedKit
 import Combine
@@ -7,12 +7,15 @@ import Combine
 final class CameraCaptureService: NSObject, ObservableObject {
     @Published var gesture: DetectedGesture = .none
     @Published var currentHand: HandLandmarks?
-    @Published var didFailToStart = false
+    @Published private(set) var status: CaptureStatus = .idle
 
-    let session = AVCaptureSession()
-    private let output = AVCaptureVideoDataOutput()
+    // Configuration and delegate callbacks for these three run entirely on
+    // `queue`, a dedicated serial queue — never touched concurrently, just
+    // not provably so to the compiler across the MainActor boundary.
+    nonisolated(unsafe) let session = AVCaptureSession()
+    nonisolated(unsafe) private let output = AVCaptureVideoDataOutput()
+    nonisolated(unsafe) private let handRequest = VNDetectHumanHandPoseRequest()
     private let queue = DispatchQueue(label: "faceaiid.camera.queue")
-    private let handRequest = VNDetectHumanHandPoseRequest()
 
     override init() {
         super.init()
@@ -24,7 +27,7 @@ final class CameraCaptureService: NSObject, ObservableObject {
             guard let self else { return }
             Task { @MainActor in
                 guard granted else {
-                    self.didFailToStart = true
+                    self.status = .denied
                     return
                 }
                 self.configureSession()
@@ -33,6 +36,7 @@ final class CameraCaptureService: NSObject, ObservableObject {
     }
 
     func stop() {
+        status = .idle
         queue.async { [session] in
             if session.isRunning { session.stopRunning() }
         }
@@ -48,7 +52,7 @@ final class CameraCaptureService: NSObject, ObservableObject {
                   let input = try? AVCaptureDeviceInput(device: device),
                   self.session.canAddInput(input) else {
                 self.session.commitConfiguration()
-                Task { @MainActor in self.didFailToStart = true }
+                Task { @MainActor in self.status = .failed }
                 return
             }
             self.session.addInput(input)
@@ -59,6 +63,7 @@ final class CameraCaptureService: NSObject, ObservableObject {
             }
             self.session.commitConfiguration()
             self.session.startRunning()
+            Task { @MainActor in self.status = .running }
         }
     }
 }
@@ -82,7 +87,7 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 return
             }
 
-            let hand = Self.landmarks(from: observation)
+            let hand = VisionHandMapping.landmarks(from: observation)
             let gesture = HandGestureClassifier.classify(hand)
 
             Task { @MainActor in
@@ -92,24 +97,5 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         } catch {
             // Best-effort per-frame detection; a single failed frame is not fatal.
         }
-    }
-
-    nonisolated private static func landmarks(from observation: VNHumanHandPoseObservation) -> HandLandmarks {
-        let mapping: [(HandLandmarks.Joint, VNHumanHandPoseObservation.JointName)] = [
-            (.wrist, .wrist),
-            (.thumbCMC, .thumbCMC), (.thumbMP, .thumbMP), (.thumbIP, .thumbIP), (.thumbTip, .thumbTip),
-            (.indexMCP, .indexMCP), (.indexPIP, .indexPIP), (.indexDIP, .indexDIP), (.indexTip, .indexTip),
-            (.middleMCP, .middleMCP), (.middlePIP, .middlePIP), (.middleDIP, .middleDIP), (.middleTip, .middleTip),
-            (.ringMCP, .ringMCP), (.ringPIP, .ringPIP), (.ringDIP, .ringDIP), (.ringTip, .ringTip),
-            (.littleMCP, .littleMCP), (.littlePIP, .littlePIP), (.littleDIP, .littleDIP), (.littleTip, .littleTip),
-        ]
-
-        var points: [HandLandmarks.Joint: HandPoint] = [:]
-        for (joint, visionJoint) in mapping {
-            if let point = try? observation.recognizedPoint(visionJoint), point.confidence > 0.3 {
-                points[joint] = HandPoint(x: point.location.x, y: point.location.y, confidence: CGFloat(point.confidence))
-            }
-        }
-        return HandLandmarks(points: points)
     }
 }

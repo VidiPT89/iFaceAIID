@@ -22,6 +22,7 @@ public enum LocalizedKey: String {
     case cameraStart
     case cameraStop
     case cameraPermission
+    case cameraError
     case gestureNone
     case gestureThumbsUp
     case gestureOpenPalm
@@ -43,6 +44,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .cameraStart: "Iniciar câmara",
         .cameraStop: "Parar câmara",
         .cameraPermission: "É necessário dar permissão de acesso à câmara.",
+        .cameraError: "Não foi possível aceder à câmara.",
         .gestureNone: "Nenhum gesto detetado",
         .gestureThumbsUp: "Fixe 👍",
         .gestureOpenPalm: "Mão aberta ✋",
@@ -62,6 +64,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .cameraStart: "Start camera",
         .cameraStop: "Stop camera",
         .cameraPermission: "Camera access permission is required.",
+        .cameraError: "Could not access the camera.",
         .gestureNone: "No gesture detected",
         .gestureThumbsUp: "Thumbs up 👍",
         .gestureOpenPalm: "Open palm ✋",
