@@ -46,7 +46,7 @@ public enum HandGestureClassifier {
             let handScale = GeometryHelpers.distance(wrist, middleMcp)
             if handScale > 0 {
                 let pinch = GeometryHelpers.distance(thumbTip, indexTip) / handScale
-                if pinch < 0.25, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+                if pinch < 0.18, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
                     return .letterO
                 }
             }

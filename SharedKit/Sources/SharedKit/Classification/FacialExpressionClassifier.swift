@@ -50,32 +50,6 @@ public enum FacialExpressionClassifier {
         )
     }
 
-    /// These geometric margins are deliberately loose: they're a heuristic
-    /// approximation (no ML expression model on macOS/iOS), and requiring a
-    /// large corner movement made most natural expressions register as
-    /// "none" — a looser threshold trades a little precision for actually
-    /// detecting anything at typical webcam quality.
-    public static func classify(_ landmarks: VNFaceLandmarks2D) -> FacialExpression {
-        guard let s = scores(landmarks) else { return .none }
-
-        let mouthOpen = s.mouthOpenAmount > 0.04
-        let eyesClosed = s.eyeOpenRatio < 0.18
-        let browRaised = s.browRaise > 0.06
-        let browLowered = s.browRaise < 0.05
-
-        let smile = s.mouthCornerLift > 0.003 && !mouthOpen
-        let sad = s.mouthCornerLift < -0.002 && !browRaised
-        let surprised = browRaised && mouthOpen
-        let angry = browLowered && !mouthOpen
-
-        if surprised { return .surprised }
-        if angry { return .angry }
-        if sad { return .sad }
-        if smile { return .smile }
-        if eyesClosed { return .blink }
-        return .none
-    }
-
     private static func height(_ points: [CGPoint]) -> CGFloat {
         guard let minY = points.map(\.y).min(), let maxY = points.map(\.y).max() else { return 0 }
         return maxY - minY

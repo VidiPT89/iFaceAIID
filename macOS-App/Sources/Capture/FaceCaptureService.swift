@@ -21,6 +21,7 @@ final class FaceCaptureService: NSObject, ObservableObject {
     nonisolated(unsafe) private let faceRequest = VNDetectFaceLandmarksRequest()
     private let queue = DispatchQueue(label: "faceaiid.face.queue")
     nonisolated(unsafe) private let tracker = HeadMovementTracker()
+    nonisolated(unsafe) private let expressionTracker = ExpressionBaselineTracker()
     nonisolated(unsafe) private var latestPixelBuffer: CVPixelBuffer?
     nonisolated(unsafe) private var latestFaceBoundingBox: CGRect?
     /// Feature-print extraction is comparatively expensive; recomputing it
@@ -45,6 +46,7 @@ final class FaceCaptureService: NSObject, ObservableObject {
     func stop() {
         status = .idle
         tracker.reset()
+        expressionTracker.reset()
         queue.async { [session] in
             if session.isRunning { session.stopRunning() }
         }
@@ -123,8 +125,8 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 return
             }
 
-            let expression = FacialExpressionClassifier.classify(landmarks2D)
             let scores = FacialExpressionClassifier.scores(landmarks2D)
+            let expression = scores.map { expressionTracker.classify($0) } ?? .none
             let pitch = face.pitch?.doubleValue ?? 0
             let yaw = face.yaw?.doubleValue ?? 0
             let roll = face.roll?.doubleValue ?? 0
