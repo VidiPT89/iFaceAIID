@@ -18,5 +18,7 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Face AI ID needs camera access to detect hand gestures in real time. Nothing leaves your device.</string>
 </dict>
 </plist>

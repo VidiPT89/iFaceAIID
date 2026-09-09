@@ -15,6 +15,7 @@ targets:
       path: Info.plist
       properties:
         UILaunchScreen: {}
+        NSCameraUsageDescription: "Face AI ID needs camera access to detect hand gestures in real time. Nothing leaves your device."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.ividi.faceaiid
