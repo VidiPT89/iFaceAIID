@@ -6,6 +6,7 @@ import Combine
 @MainActor
 final class FaceCaptureService: NSObject, ObservableObject {
     @Published var expression: FacialExpression = .none
+    @Published private(set) var expressionScores: ExpressionScores?
     @Published private(set) var faceDetected = false
     @Published var currentFaceLandmarks: VNFaceLandmarks2D?
     @Published private(set) var currentFaceBoundingBox: CGRect = .zero
@@ -111,6 +112,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             guard let face = faceRequest.results?.first, let landmarks2D = face.landmarks else {
                 Task { @MainActor in
                     self.expression = .none
+                    self.expressionScores = nil
                     self.headMovement = .none
                     self.identityMatch = nil
                     self.faceDetected = false
@@ -122,6 +124,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             }
 
             let expression = FacialExpressionClassifier.classify(landmarks2D)
+            let scores = FacialExpressionClassifier.scores(landmarks2D)
             let pitch = face.pitch?.doubleValue ?? 0
             let yaw = face.yaw?.doubleValue ?? 0
             let roll = face.roll?.doubleValue ?? 0
@@ -138,6 +141,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
 
             Task { @MainActor in
                 self.expression = expression
+                self.expressionScores = scores
                 self.headMovement = movement
                 self.faceDetected = true
                 self.currentFaceLandmarks = landmarks2D

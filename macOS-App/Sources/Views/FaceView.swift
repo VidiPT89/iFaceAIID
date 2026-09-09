@@ -21,19 +21,26 @@ struct FaceView: View {
                     .fill(Color(nsColor: .underPageBackgroundColor))
 
                 if isRunning {
-                    CameraPreviewView(session: capture.session)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    // See the matching comment in CameraView.swift: macOS
+                    // cameras don't auto-mirror like iOS's front camera
+                    // preview does, so the preview+overlay are flipped
+                    // together here for a natural "mirror" view.
+                    ZStack {
+                        CameraPreviewView(session: capture.session)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-                    if let faceLandmarks = capture.currentFaceLandmarks {
-                        let mesh = FaceMeshOverlayShape(
-                            landmarks: faceLandmarks,
-                            boundingBox: capture.currentFaceBoundingBox,
-                            videoSize: capture.videoSize
-                        )
-                        mesh.stroke(BrandColor.accent, lineWidth: 1.5)
-                        LandmarkPointsShape(points: mesh.allPoints, videoSize: capture.videoSize, radius: 1.5)
-                            .fill(BrandColor.accentSecondary)
+                        if let faceLandmarks = capture.currentFaceLandmarks {
+                            let mesh = FaceMeshOverlayShape(
+                                landmarks: faceLandmarks,
+                                boundingBox: capture.currentFaceBoundingBox,
+                                videoSize: capture.videoSize
+                            )
+                            mesh.stroke(BrandColor.accent, lineWidth: 1.5)
+                            LandmarkPointsShape(points: mesh.allPoints, videoSize: capture.videoSize, radius: 1.5)
+                                .fill(BrandColor.accentSecondary)
+                        }
                     }
+                    .scaleEffect(x: -1, y: 1)
                 } else {
                     Text(placeholderText)
                         .foregroundStyle(.secondary)
@@ -43,14 +50,17 @@ struct FaceView: View {
 
                 if isRunning {
                     VStack {
-                        HStack {
+                        VStack(alignment: .leading, spacing: 2) {
                             Text("face: \(capture.faceDetected ? "yes" : "no")")
-                                .font(.system(.caption2, design: .monospaced))
-                                .padding(4)
-                                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
-                                .foregroundStyle(.white)
-                            Spacer()
+                            if let s = capture.expressionScores {
+                                Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                            }
                         }
+                        .font(.system(.caption2, design: .monospaced))
+                        .padding(4)
+                        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                        .foregroundStyle(.white)
+                        HStack { Spacer() }
                         Spacer()
                     }
                     .padding(8)

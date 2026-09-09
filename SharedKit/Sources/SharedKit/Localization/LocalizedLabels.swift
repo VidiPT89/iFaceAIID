@@ -9,7 +9,21 @@ extension DetectedGesture {
         case .closedFist: return .gestureClosedFist
         case .peaceSign: return .gesturePeaceSign
         case .pointing: return .gesturePointing
+        case .thumbsDown: return .gestureThumbsDown
+        case .threeFingers: return .gestureThreeFingers
+        case .shaka: return .gestureShaka
+        case .iLoveYou: return .gestureILoveYou
         case .none: return .gestureNone
+        }
+    }
+}
+
+extension Handedness {
+    public var localizedKey: LocalizedKey? {
+        switch self {
+        case .left: return .handLeft
+        case .right: return .handRight
+        case .unknown: return nil
         }
     }
 }

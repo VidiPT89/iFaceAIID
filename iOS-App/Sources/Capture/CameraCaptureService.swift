@@ -100,7 +100,8 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             let detectedHands: [DetectedHand] = observations.enumerated().map { index, observation in
                 let landmarks = VisionHandMapping.landmarks(from: observation)
                 let gesture = HandGestureClassifier.classify(landmarks)
-                return DetectedHand(id: index, landmarks: landmarks, gesture: gesture)
+                let handedness = VisionHandMapping.handedness(from: observation)
+                return DetectedHand(id: index, landmarks: landmarks, gesture: gesture, handedness: handedness)
             }
 
             Task { @MainActor in

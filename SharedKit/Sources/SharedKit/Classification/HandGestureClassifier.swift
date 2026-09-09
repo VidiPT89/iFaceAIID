@@ -35,14 +35,31 @@ public enum HandGestureClassifier {
 
         if thumbExtended, nonThumbExtendedCount == 0,
            let thumbTip = hand.point(.thumbTip)?.location,
-           let thumbMcp = hand.point(.thumbCMC)?.location,
-           thumbTip.y > thumbMcp.y + 0.02 {
+           let thumbMcp = hand.point(.thumbCMC)?.location {
             // Vision's coordinate space is bottom-left origin, so "up" means a larger y.
-            return .thumbsUp
+            if thumbTip.y > thumbMcp.y + 0.02 { return .thumbsUp }
+            if thumbTip.y < thumbMcp.y - 0.02 { return .thumbsDown }
+        }
+
+        // Shaka / ASL-LGP "Y": thumb and pinky extended, the three middle
+        // fingers closed.
+        if thumbExtended, pinkyExtended, !indexExtended, !middleExtended, !ringExtended {
+            return .shaka
+        }
+
+        // ASL "I love you": thumb, index and pinky extended, middle and ring closed.
+        if thumbExtended, indexExtended, pinkyExtended, !middleExtended, !ringExtended {
+            return .iLoveYou
         }
 
         if indexExtended, middleExtended, !ringExtended, !pinkyExtended {
             return .peaceSign
+        }
+
+        // W / number 3: checked before the tolerant "openPalm" fallback
+        // below, which would otherwise swallow it (3 non-thumb extended).
+        if indexExtended, middleExtended, ringExtended, !pinkyExtended {
+            return .threeFingers
         }
 
         if indexExtended, !middleExtended, !ringExtended, !pinkyExtended {

@@ -19,15 +19,26 @@ struct CameraView: View {
                     .fill(Color(nsColor: .underPageBackgroundColor))
 
                 if isRunning {
-                    CameraPreviewView(session: capture.session)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    // Flipped as one unit so the preview and the overlay
+                    // stay pixel-aligned with each other. macOS cameras
+                    // don't report a "front" position, so — unlike iOS,
+                    // whose preview auto-mirrors for a front camera — this
+                    // app would otherwise show a "video call" view instead
+                    // of the natural "mirror" view most self-facing camera
+                    // apps use, and the user's own left/right hand would
+                    // never match what they intuitively expect.
+                    ZStack {
+                        CameraPreviewView(session: capture.session)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-                    ForEach(capture.hands) { hand in
-                        HandOverlayShape(hand: hand.landmarks, videoSize: capture.videoSize)
-                            .stroke(BrandColor.accent, lineWidth: 3)
-                        LandmarkPointsShape(points: hand.landmarks.allLocations, videoSize: capture.videoSize)
-                            .fill(BrandColor.accentSecondary)
+                        ForEach(capture.hands) { hand in
+                            HandOverlayShape(hand: hand.landmarks, videoSize: capture.videoSize)
+                                .stroke(BrandColor.accent, lineWidth: 3)
+                            LandmarkPointsShape(points: hand.landmarks.allLocations, videoSize: capture.videoSize)
+                                .fill(BrandColor.accentSecondary)
+                        }
                     }
+                    .scaleEffect(x: -1, y: 1)
                 } else {
                     Text(placeholderText)
                         .foregroundStyle(.secondary)
@@ -53,7 +64,7 @@ struct CameraView: View {
                     Spacer()
                     HStack(spacing: 8) {
                         ForEach(capture.hands.filter { $0.gesture != .none }) { hand in
-                            Text(localization.string(hand.gesture.localizedKey))
+                            Text(handLabel(for: hand))
                                 .font(.headline)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
@@ -92,5 +103,11 @@ struct CameraView: View {
         case .failed: return localization.string(.cameraError)
         case .idle, .running: return localization.string(.cameraPermission)
         }
+    }
+
+    private func handLabel(for hand: DetectedHand) -> String {
+        let gestureText = localization.string(hand.gesture.localizedKey)
+        guard let key = hand.handedness.localizedKey else { return gestureText }
+        return "\(localization.string(key)) — \(gestureText)"
     }
 }

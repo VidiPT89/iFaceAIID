@@ -28,6 +28,12 @@ public enum LocalizedKey: String {
     case gestureClosedFist
     case gesturePeaceSign
     case gesturePointing
+    case gestureThumbsDown
+    case gestureThreeFingers
+    case gestureShaka
+    case gestureILoveYou
+    case handLeft
+    case handRight
     case footerPrivacy
     case footerDevelopedBy
     case modeHands
@@ -66,6 +72,12 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureClosedFist: "Punho fechado ✊",
         .gesturePeaceSign: "Sinal de paz ✌️",
         .gesturePointing: "A apontar ☝️",
+        .gestureThumbsDown: "Não gostei 👎",
+        .gestureThreeFingers: "Três dedos (W) 🤟",
+        .gestureShaka: "Shaka 🤙",
+        .gestureILoveYou: "Amo-te (LGP/ASL) 🤟",
+        .handLeft: "Mão esquerda",
+        .handRight: "Mão direita",
         .footerPrivacy: "Privacidade em primeiro lugar: o vídeo nunca sai do dispositivo.",
         .footerDevelopedBy: "Desenvolvido por",
         .modeHands: "Mãos",
@@ -102,6 +114,12 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureClosedFist: "Closed fist ✊",
         .gesturePeaceSign: "Peace sign ✌️",
         .gesturePointing: "Pointing ☝️",
+        .gestureThumbsDown: "Thumbs down 👎",
+        .gestureThreeFingers: "Three fingers (W) 🤟",
+        .gestureShaka: "Shaka 🤙",
+        .gestureILoveYou: "I love you (ASL/LGP) 🤟",
+        .handLeft: "Left hand",
+        .handRight: "Right hand",
         .footerPrivacy: "Privacy first: video never leaves the device.",
         .footerDevelopedBy: "Developed by",
         .modeHands: "Hands",

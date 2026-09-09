@@ -28,4 +28,18 @@ public enum VisionHandMapping {
         }
         return HandLandmarks(points: points)
     }
+
+    /// Vision's `chirality` is computed relative to the image as described
+    /// by the `orientation` passed to `VNImageRequestHandler` — since both
+    /// capture services pass an orientation that already accounts for their
+    /// platform's front-camera mirroring convention (`.leftMirrored` on a
+    /// portrait-locked iPhone; a plain, un-mirrored `.up` on a Mac whose
+    /// camera doesn't physically mirror), this maps directly with no swap.
+    public static func handedness(from observation: VNHumanHandPoseObservation) -> Handedness {
+        switch observation.chirality {
+        case .left: return .left
+        case .right: return .right
+        default: return .unknown
+        }
+    }
 }

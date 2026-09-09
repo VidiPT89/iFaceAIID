@@ -44,14 +44,17 @@ struct FaceView: View {
 
                 if isRunning {
                     VStack {
-                        HStack {
+                        VStack(alignment: .leading, spacing: 2) {
                             Text("face: \(capture.faceDetected ? "yes" : "no")")
-                                .font(.system(.caption2, design: .monospaced))
-                                .padding(4)
-                                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
-                                .foregroundStyle(.white)
-                            Spacer()
+                            if let s = capture.expressionScores {
+                                Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                            }
                         }
+                        .font(.system(.caption2, design: .monospaced))
+                        .padding(4)
+                        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                        .foregroundStyle(.white)
+                        HStack { Spacer() }
                         Spacer()
                     }
                     .padding(8)
