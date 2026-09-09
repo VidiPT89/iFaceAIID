@@ -1,11 +1,15 @@
 import CoreGraphics
 
-/// Classifies a `HandLandmarks` snapshot into one of the supported Phase-1 gestures,
-/// using the same tip/pip/mcp distance-to-wrist heuristic as the web prototype.
+/// Classifies a `HandLandmarks` snapshot into one of the supported gestures.
+///
+/// Finger "extended" state is determined by the angle at the PIP joint
+/// between (MCP→PIP) and (PIP→TIP) — close to 180° means the finger is
+/// roughly straight. This is robust to the hand being rotated or tilted
+/// toward the camera, unlike a pure tip-distance-from-wrist check (the
+/// original approach here), which only works reliably when the hand is held
+/// upright and flat to the camera — a real source of missed detections.
 public enum HandGestureClassifier {
     public static func classify(_ hand: HandLandmarks) -> DetectedGesture {
-        guard let wrist = hand.point(.wrist)?.location else { return .none }
-
         let fingers: [(tip: HandLandmarks.Joint, pip: HandLandmarks.Joint, mcp: HandLandmarks.Joint)] = [
             (.thumbTip, .thumbIP, .thumbCMC),
             (.indexTip, .indexPIP, .indexMCP),
@@ -18,10 +22,8 @@ public enum HandGestureClassifier {
             guard let tip = hand.point(finger.tip)?.location,
                   let pip = hand.point(finger.pip)?.location,
                   let mcp = hand.point(finger.mcp)?.location else { return false }
-            let tipDistance = GeometryHelpers.distance(tip, wrist)
-            let pipDistance = GeometryHelpers.distance(pip, wrist)
-            let mcpDistance = GeometryHelpers.distance(mcp, wrist)
-            return tipDistance > pipDistance && pipDistance > mcpDistance * 0.9
+            let angle = GeometryHelpers.angleAtVertex(mcp, vertex: pip, tip)
+            return angle > 140
         }
 
         let thumbExtended = extended[0]
@@ -39,10 +41,6 @@ public enum HandGestureClassifier {
             return .thumbsUp
         }
 
-        if nonThumbExtendedCount == 4 {
-            return .openPalm
-        }
-
         if indexExtended, middleExtended, !ringExtended, !pinkyExtended {
             return .peaceSign
         }
@@ -51,7 +49,14 @@ public enum HandGestureClassifier {
             return .pointing
         }
 
-        if !thumbExtended, nonThumbExtendedCount == 0 {
+        // Tolerate one misdetected finger (commonly the pinky, which is
+        // easiest to lose track of at an angle) instead of requiring a
+        // perfect 4-of-4 or 0-of-4 match.
+        if nonThumbExtendedCount >= 3 {
+            return .openPalm
+        }
+
+        if nonThumbExtendedCount <= 1, !thumbExtended {
             return .closedFist
         }
 

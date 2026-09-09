@@ -75,7 +75,12 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         from connection: AVCaptureConnection
     ) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+        // Front camera buffers on a portrait-locked iPhone arrive in the
+        // sensor's native landscape orientation; .leftMirrored is the
+        // correct mapping so Vision sees an upright, correctly mirrored
+        // frame instead of a hand/face rotated 90° (which badly hurts
+        // detection confidence).
+        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .leftMirrored, options: [:])
 
         do {
             try handler.perform([handRequest])

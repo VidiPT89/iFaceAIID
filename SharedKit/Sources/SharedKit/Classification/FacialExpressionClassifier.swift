@@ -15,23 +15,32 @@ public enum FacialExpressionClassifier {
 
         let mouthCornerLeft = outerLips[0]
         let mouthCornerRight = outerLips[outerLips.count / 2]
-        let mouthMidY = outerLips.map(\.y).reduce(0, +) / CGFloat(outerLips.count)
+        // Excludes the corners themselves from the baseline, otherwise a
+        // smile's own corner movement drags the average toward it and mutes
+        // the signal we're trying to detect against.
+        let midlinePoints = outerLips.enumerated().filter { $0.offset != 0 && $0.offset != outerLips.count / 2 }.map(\.element)
+        let mouthMidY = midlinePoints.map(\.y).reduce(0, +) / CGFloat(max(midlinePoints.count, 1))
         let cornerAvgY = (mouthCornerLeft.y + mouthCornerRight.y) / 2
 
         let innerLipsHeight = (landmarks.innerLips?.normalizedPoints).map(height) ?? 0
-        let mouthOpen = innerLipsHeight > 0.06
+        let mouthOpen = innerLipsHeight > 0.04
 
         let eyeHeight = (height(leftEye) + height(rightEye)) / 2
         let eyeWidth = (width(leftEye) + width(rightEye)) / 2
-        let eyesClosed = eyeWidth > 0 && (eyeHeight / eyeWidth) < 0.15
+        let eyesClosed = eyeWidth > 0 && (eyeHeight / eyeWidth) < 0.18
 
         let browEyeGapLeft = averageY(leftEyebrow) - averageY(leftEye)
         let browEyeGapRight = averageY(rightEyebrow) - averageY(rightEye)
-        let browRaised = (browEyeGapLeft + browEyeGapRight) / 2 > 0.09
-        let browLowered = (browEyeGapLeft + browEyeGapRight) / 2 < 0.04
+        let browRaised = (browEyeGapLeft + browEyeGapRight) / 2 > 0.06
+        let browLowered = (browEyeGapLeft + browEyeGapRight) / 2 < 0.05
 
-        let smile = cornerAvgY > mouthMidY + 0.015 && !mouthOpen
-        let sad = cornerAvgY < mouthMidY - 0.01 && !browRaised
+        // These geometric margins are deliberately loose: they're a heuristic
+        // approximation (no ML expression model on macOS/iOS), and requiring
+        // a large corner movement made most natural expressions register as
+        // "none" — a looser threshold trades a little precision for actually
+        // detecting anything at typical webcam quality.
+        let smile = cornerAvgY > mouthMidY + 0.006 && !mouthOpen
+        let sad = cornerAvgY < mouthMidY - 0.004 && !browRaised
         let surprised = browRaised && mouthOpen
         let angry = browLowered && !mouthOpen
 
