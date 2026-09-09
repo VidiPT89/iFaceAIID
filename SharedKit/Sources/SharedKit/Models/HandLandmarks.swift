@@ -34,4 +34,8 @@ public struct HandLandmarks: Sendable {
     }
 
     public func point(_ joint: Joint) -> HandPoint? { points[joint] }
+
+    /// All currently-tracked joint locations, for drawing every detected
+    /// point rather than only the ones a specific gesture cares about.
+    public var allLocations: [CGPoint] { points.values.map(\.location) }
 }

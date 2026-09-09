@@ -24,6 +24,13 @@ struct FaceView: View {
                 if isRunning {
                     CameraPreviewView(session: capture.session)
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+
+                    if let faceLandmarks = capture.currentFaceLandmarks {
+                        let mesh = FaceMeshOverlayShape(landmarks: faceLandmarks)
+                        mesh.stroke(BrandColor.accent, lineWidth: 1.5)
+                        LandmarkPointsShape(points: mesh.allPoints, radius: 1.5)
+                            .fill(BrandColor.accentSecondary)
+                    }
                 } else {
                     Text(placeholderText)
                         .foregroundStyle(.secondary)

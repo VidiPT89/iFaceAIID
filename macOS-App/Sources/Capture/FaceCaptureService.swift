@@ -1,5 +1,5 @@
 @preconcurrency import AVFoundation
-import Vision
+@preconcurrency import Vision
 import SharedKit
 import Combine
 
@@ -7,6 +7,7 @@ import Combine
 final class FaceCaptureService: NSObject, ObservableObject {
     @Published var expression: FacialExpression = .none
     @Published private(set) var faceDetected = false
+    @Published var currentFaceLandmarks: VNFaceLandmarks2D?
     @Published var headMovement: HeadMovement = .none
     @Published private(set) var status: CaptureStatus = .idle
     @Published var identityMatch: (name: String, distance: Float)?
@@ -111,6 +112,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                     self.headMovement = .none
                     self.identityMatch = nil
                     self.faceDetected = false
+                    self.currentFaceLandmarks = nil
                 }
                 tracker.reset()
                 return
@@ -135,6 +137,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.expression = expression
                 self.headMovement = movement
                 self.faceDetected = true
+                self.currentFaceLandmarks = landmarks2D
                 if shouldCheckIdentity {
                     self.identityMatch = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }
                 }

@@ -26,6 +26,8 @@ struct CameraView: View {
                     if let hand = capture.currentHand {
                         HandOverlayShape(hand: hand)
                             .stroke(BrandColor.accent, lineWidth: 3)
+                        LandmarkPointsShape(points: hand.allLocations)
+                            .fill(BrandColor.accentSecondary)
                     }
                 } else {
                     Text(placeholderText)
