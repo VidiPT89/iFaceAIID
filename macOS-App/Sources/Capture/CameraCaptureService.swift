@@ -96,6 +96,7 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             }
         } catch {
             // Best-effort per-frame detection; a single failed frame is not fatal.
+            print("[FaceAIID] detection frame failed: \(error)")
         }
     }
 }

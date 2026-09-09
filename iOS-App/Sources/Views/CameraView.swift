@@ -33,6 +33,21 @@ struct CameraView: View {
                         .padding()
                 }
 
+                if isRunning {
+                    VStack {
+                        HStack {
+                            Text("hand: \(capture.currentHand != nil ? "yes" : "no")")
+                                .font(.system(.caption2, design: .monospaced))
+                                .padding(4)
+                                .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundStyle(.white)
+                            Spacer()
+                        }
+                        Spacer()
+                    }
+                    .padding(8)
+                }
+
                 VStack {
                     Spacer()
                     if isRunning, capture.gesture != .none {

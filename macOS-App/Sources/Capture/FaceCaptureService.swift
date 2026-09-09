@@ -6,6 +6,7 @@ import Combine
 @MainActor
 final class FaceCaptureService: NSObject, ObservableObject {
     @Published var expression: FacialExpression = .none
+    @Published private(set) var faceDetected = false
     @Published var headMovement: HeadMovement = .none
     @Published private(set) var status: CaptureStatus = .idle
     @Published var identityMatch: (name: String, distance: Float)?
@@ -107,6 +108,7 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             guard let face = faceRequest.results?.first, let landmarks2D = face.landmarks else {
                 Task { @MainActor in
                     self.expression = .none
+                    self.faceDetected = false
                 }
                 return
             }
@@ -129,12 +131,14 @@ extension FaceCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             Task { @MainActor in
                 self.expression = expression
                 self.headMovement = movement
+                self.faceDetected = true
                 if shouldCheckIdentity {
                     self.identityMatch = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }
                 }
             }
         } catch {
             // Best-effort per-frame detection; a single failed frame is not fatal.
+            print("[FaceAIID] detection frame failed: \(error)")
         }
     }
 }
