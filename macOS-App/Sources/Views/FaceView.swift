@@ -5,6 +5,7 @@ struct FaceView: View {
     @StateObject private var capture = FaceCaptureService()
     @ObservedObject private var localization = LocalizationManager.shared
     @ObservedObject private var identityStore = FaceIdentityStore.shared
+    @ObservedObject private var debugMode = DebugModeStore.shared
     @State private var nameInput = ""
 
     private var isRunning: Bool { capture.status == .running }
@@ -54,7 +55,7 @@ struct FaceView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                if isRunning {
+                if isRunning, debugMode.isEnabled {
                     VStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("face: \(capture.faceDetected ? "yes" : "no")")

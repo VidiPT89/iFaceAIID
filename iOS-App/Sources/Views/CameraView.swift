@@ -4,6 +4,7 @@ import SharedKit
 struct CameraView: View {
     @StateObject private var capture = CameraCaptureService()
     @ObservedObject private var localization = LocalizationManager.shared
+    @ObservedObject private var debugMode = DebugModeStore.shared
 
     private var isRunning: Bool { capture.status == .running }
 
@@ -35,7 +36,7 @@ struct CameraView: View {
                         .padding()
                 }
 
-                if isRunning {
+                if isRunning, debugMode.isEnabled {
                     VStack {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {

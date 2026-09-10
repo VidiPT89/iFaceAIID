@@ -3,6 +3,7 @@ import SwiftUI
 public struct ControlsBar: View {
     @ObservedObject private var localization = LocalizationManager.shared
     @ObservedObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var debugMode = DebugModeStore.shared
 
     public init() {}
 
@@ -23,6 +24,14 @@ public struct ControlsBar: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 120)
+
+            Button {
+                debugMode.isEnabled.toggle()
+            } label: {
+                Image(systemName: "ladybug.fill")
+                    .foregroundStyle(debugMode.isEnabled ? BrandColor.accent : .secondary)
+            }
+            .buttonStyle(.plain)
         }
     }
 }
