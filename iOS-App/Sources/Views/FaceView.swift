@@ -158,7 +158,7 @@ struct FaceView: View {
 
     private var placeholderText: String {
         switch capture.status {
-        case .denied: return localization.string(.cameraPermission)
+        case .denied: return localization.string(.cameraDenied)
         case .failed: return localization.string(.cameraError)
         case .idle, .running: return localization.string(.cameraPermission)
         }

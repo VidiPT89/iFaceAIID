@@ -56,6 +56,12 @@ final class CameraCaptureService: NSObject, ObservableObject {
             guard let device = AVCaptureDevice.default(for: .video),
                   let input = try? AVCaptureDeviceInput(device: device),
                   self.session.canAddInput(input) else {
+                // This path was completely silent before — if no camera
+                // device can be found or claimed (e.g. already held
+                // exclusively by another app), the user just saw the same
+                // "permission needed" text as before ever clicking, with
+                // no way to tell the click did anything at all.
+                print("[FaceAIID] could not open a camera device (device=\(String(describing: AVCaptureDevice.default(for: .video))))")
                 self.session.commitConfiguration()
                 Task { @MainActor in self.status = .failed }
                 return
