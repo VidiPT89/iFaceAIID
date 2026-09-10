@@ -29,25 +29,29 @@ public final class ExpressionBaselineTracker {
     /// camera angle, person swap) within a couple of seconds at ~30fps.
     private let adaptRate: CGFloat = 0.02
 
-    /// Hysteresis on top of the per-frame classification: a single frame's
-    /// result only becomes the displayed expression once it has repeated
-    /// for `requiredStreak` frames in a row. Without this, a classification
-    /// that flips for just one frame (still possible even after smoothing,
-    /// right at a threshold boundary) shows up as a visibly wrong badge
-    /// before correcting itself a frame later.
-    private var displayed: FacialExpression = .none
-    private var pending: FacialExpression = .none
-    private var pendingStreak = 0
-    private let requiredStreak = 3
+    /// Hysteresis on top of the per-frame classification: the displayed
+    /// expression is the most common result over the last few frames
+    /// instead of the raw per-frame value.
+    ///
+    /// An earlier version required a classification to repeat for 3
+    /// *consecutive* frames before it could be displayed — that turned out
+    /// to be a real bug, not just an over-cautious setting: a real held
+    /// expression is never perfectly stable frame-to-frame even after
+    /// smoothing (an occasional frame reads as "none" as the mouth/eyes
+    /// move slightly), and any single outlier frame reset the whole streak
+    /// back to zero. In practice this meant a genuinely held expression
+    /// could stay stuck showing "none" indefinitely. A small majority vote
+    /// tolerates that kind of one-off noise instead of being wiped out by it.
+    private var recentWindow: [FacialExpression] = []
+    private let windowSize = 5
+    private let requiredVotes = 3
 
     public init() {}
 
     public func reset() {
         baseline = nil
         smoothed = nil
-        displayed = .none
-        pending = .none
-        pendingStreak = 0
+        recentWindow = []
     }
 
     public func classify(_ scores: ExpressionScores) -> FacialExpression {
@@ -102,9 +106,30 @@ public final class ExpressionBaselineTracker {
             expression = .none
         }
 
-        // Only drift the baseline on frames that already read as neutral,
-        // so holding an expression doesn't slowly erase its own signal.
-        if expression == .none {
+        recentWindow.append(expression)
+        if recentWindow.count > windowSize {
+            recentWindow.removeFirst(recentWindow.count - windowSize)
+        }
+
+        var voteCounts: [FacialExpression: Int] = [:]
+        for vote in recentWindow { voteCounts[vote, default: 0] += 1 }
+        // Among non-"none" expressions that reach the required vote count,
+        // pick the most frequent one — a real expression should dominate
+        // its own window even with a little frame-to-frame noise; "none"
+        // only wins when nothing else clears the bar.
+        let winner = voteCounts
+            .filter { $0.key != .none && $0.value >= requiredVotes }
+            .max { $0.value < $1.value }?.key
+        let displayed = winner ?? .none
+
+        // Freeze the baseline on the *displayed* (post-vote) result, not the
+        // raw instant one: an earlier version froze on the raw per-frame
+        // value, so an occasional weak/neutral-reading frame in the middle
+        // of a genuinely held expression let the baseline creep toward it
+        // and, over several such dips, gradually cancel out the real
+        // signal — the expression would eventually stop registering even
+        // though the face never actually changed.
+        if displayed == .none {
             baseline = ExpressionScores(
                 mouthCornerLift: base.mouthCornerLift + liftDelta * adaptRate,
                 mouthOpenAmount: base.mouthOpenAmount + openDelta * adaptRate,
@@ -113,15 +138,6 @@ public final class ExpressionBaselineTracker {
             )
         }
 
-        if expression == pending {
-            pendingStreak += 1
-        } else {
-            pending = expression
-            pendingStreak = 1
-        }
-        if pendingStreak >= requiredStreak {
-            displayed = expression
-        }
         return displayed
     }
 }

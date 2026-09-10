@@ -111,6 +111,35 @@ final class ExpressionBaselineTrackerTests: XCTestCase {
         XCTAssertEqual(feed(tracker, blinking, 5), .blink)
     }
 
+    func testKeepsShowingAHeldExpressionDespiteOccasionalNeutralReadingFrames() {
+        // Regression test for a real bug found this session: an earlier
+        // version required 3 *consecutive* identical frames before
+        // switching the displayed expression, and froze the baseline
+        // whenever the *raw instant* frame read as neutral. A real held
+        // expression is never perfectly stable frame-to-frame — an
+        // occasional frame reads back as neutral as the face moves
+        // slightly — and each such dip both reset the streak to zero AND
+        // let the baseline creep toward it, so a genuinely held expression
+        // could get stuck showing "none" forever. A majority-vote window
+        // that only freezes the baseline on the displayed (post-vote)
+        // result must tolerate this instead.
+        let tracker = ExpressionBaselineTracker()
+        _ = feed(tracker, neutral, 10)
+        let smiling = ExpressionScores(
+            mouthCornerLift: neutral.mouthCornerLift + 0.02,
+            mouthOpenAmount: neutral.mouthOpenAmount,
+            eyeOpenRatio: neutral.eyeOpenRatio,
+            browRaise: neutral.browRaise
+        )
+        var last: FacialExpression = .none
+        for i in 0..<30 {
+            // Four smiling frames for every one neutral-reading frame,
+            // mimicking real noise around a genuinely held expression.
+            last = tracker.classify(i % 5 == 0 ? neutral : smiling)
+        }
+        XCTAssertEqual(last, .smile)
+    }
+
     func testResetClearsBaselineAndHysteresis() {
         let tracker = ExpressionBaselineTracker()
         _ = feed(tracker, neutral, 10)

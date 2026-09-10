@@ -15,6 +15,7 @@ final class CameraCaptureService: NSObject, ObservableObject {
     nonisolated(unsafe) let session = AVCaptureSession()
     nonisolated(unsafe) private let output = AVCaptureVideoDataOutput()
     nonisolated(unsafe) private let handRequest = VNDetectHumanHandPoseRequest()
+    nonisolated(unsafe) private var gestureStabilizers: [HandGestureStabilizer] = []
     private let queue = DispatchQueue(label: "faceaiid.camera.queue")
 
     override init() {
@@ -40,8 +41,9 @@ final class CameraCaptureService: NSObject, ObservableObject {
 
     func stop() {
         status = .idle
-        queue.async { [session] in
+        queue.async { [session, weak self] in
             if session.isRunning { session.stopRunning() }
+            self?.gestureStabilizers.removeAll()
         }
     }
 
@@ -85,9 +87,14 @@ extension CameraCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             try handler.perform([handRequest])
             let observations = handRequest.results ?? []
 
+            if gestureStabilizers.count > observations.count {
+                gestureStabilizers.removeLast(gestureStabilizers.count - observations.count)
+            }
             let detectedHands: [DetectedHand] = observations.enumerated().map { index, observation in
                 let landmarks = VisionHandMapping.landmarks(from: observation)
-                let gesture = HandGestureClassifier.classify(landmarks)
+                let rawGesture = HandGestureClassifier.classify(landmarks)
+                if index >= gestureStabilizers.count { gestureStabilizers.append(HandGestureStabilizer()) }
+                let gesture = gestureStabilizers[index].push(rawGesture)
                 let handedness = VisionHandMapping.handedness(from: observation)
                 return DetectedHand(id: index, landmarks: landmarks, gesture: gesture, handedness: handedness)
             }
