@@ -36,13 +36,23 @@ struct CameraView: View {
                         .padding()
                 }
 
-                if isRunning, debugMode.isEnabled {
+                if debugMode.isEnabled {
                     VStack {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("hands: \(capture.hands.count)")
-                                if let debug = capture.hands.first.flatMap({ HandGestureClassifier.debugInfo($0.landmarks) }) {
-                                    Text("thumb \(Int(debug.thumbAngle))° (\(debug.thumbExtended ? "out" : "in")) · pinch \(String(format: "%.2f", debug.pinch))")
+                                // Shown unconditionally (not just while
+                                // running): if the camera never starts, this
+                                // is the only way to see *why* — previously
+                                // the whole debug panel was gated behind
+                                // isRunning, so a stuck idle/denied/failed
+                                // status gave zero visible information even
+                                // with debug mode on.
+                                Text("status: \(String(describing: capture.status))")
+                                if isRunning {
+                                    Text("hands: \(capture.hands.count)")
+                                    if let debug = capture.hands.first.flatMap({ HandGestureClassifier.debugInfo($0.landmarks) }) {
+                                        Text("thumb \(Int(debug.thumbAngle))° (\(debug.thumbExtended ? "out" : "in")) · pinch \(String(format: "%.2f", debug.pinch))")
+                                    }
                                 }
                             }
                             .font(.system(.caption2, design: .monospaced))

@@ -49,12 +49,21 @@ struct FaceView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                if isRunning, debugMode.isEnabled {
+                if debugMode.isEnabled {
                     VStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("face: \(capture.faceDetected ? "yes" : "no")")
-                            if let s = capture.expressionScores {
-                                Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                            // Shown unconditionally (not just while
+                            // running): if the camera never starts, this is
+                            // the only way to see *why* — previously the
+                            // whole debug panel was gated behind isRunning,
+                            // so a stuck idle/denied/failed status gave zero
+                            // visible information even with debug mode on.
+                            Text("status: \(String(describing: capture.status))")
+                            if isRunning {
+                                Text("face: \(capture.faceDetected ? "yes" : "no")")
+                                if let s = capture.expressionScores {
+                                    Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                                }
                             }
                         }
                         .font(.system(.caption2, design: .monospaced))
