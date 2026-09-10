@@ -140,6 +140,26 @@ final class ExpressionBaselineTrackerTests: XCTestCase {
         XCTAssertEqual(last, .smile)
     }
 
+    func testDoesNotGetPermanentlyStuckOnANaturalFacialAsymmetry() {
+        // Regression test for a real bug reported this session: a user with
+        // a normal, neutral face was told they were "sad". Once the
+        // baseline learned an initial neutral, a face whose natural resting
+        // asymmetry crossed one of the expression thresholds (very common —
+        // few real faces are perfectly symmetric) got permanently displayed
+        // as that expression: the baseline only adapted on "none" frames,
+        // so once locked onto a non-none display it never had a chance to
+        // learn that this *was* the neutral face all along.
+        let tracker = ExpressionBaselineTracker()
+        _ = feed(tracker, neutral, 10) // seed a baseline from a truly neutral face first
+        let asymmetricButNeutral = ExpressionScores(
+            mouthCornerLift: neutral.mouthCornerLift - 0.02,
+            mouthOpenAmount: neutral.mouthOpenAmount,
+            eyeOpenRatio: neutral.eyeOpenRatio,
+            browRaise: neutral.browRaise
+        )
+        XCTAssertEqual(feed(tracker, asymmetricButNeutral, 500), .none)
+    }
+
     func testResetClearsBaselineAndHysteresis() {
         let tracker = ExpressionBaselineTracker()
         _ = feed(tracker, neutral, 10)

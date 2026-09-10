@@ -88,6 +88,13 @@ public enum HandGestureClassifier {
             return .letterL
         }
 
+        // ASL/LGP fingerspelling letter "I": only the pinky extended,
+        // everything else (including the thumb) closed. Checked before the
+        // closedFist fallback below, which would otherwise claim this shape.
+        if pinkyExtended, !thumbExtended, !indexExtended, !middleExtended, !ringExtended {
+            return .letterI
+        }
+
         if thumbExtended, nonThumbExtendedCount == 0,
            let thumbTip = hand.point(.thumbTip)?.location,
            let thumbMcp = hand.point(.thumbCMC)?.location {

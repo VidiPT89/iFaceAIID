@@ -109,6 +109,12 @@ final class HandGestureClassifierTests: XCTestCase {
         XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .thumbsDown)
     }
 
+    func testLetterI() {
+        var fingers = allCurled
+        fingers["pinky"] = FingerSpec(extended: true)
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .letterI)
+    }
+
     func testPeaceSign() {
         var fingers = allCurled
         fingers["index"] = FingerSpec(extended: true)
