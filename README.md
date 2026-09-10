@@ -77,7 +77,10 @@ Switch language and appearance at any time from the toolbar.
 ```bash
 xcodebuild -project macOS-App/iFaceAIID-Mac.xcodeproj -scheme iFaceAIID-Mac -destination 'platform=macOS' build
 xcodebuild -project iOS-App/iFaceAIID.xcodeproj -scheme iFaceAIID -destination 'generic/platform=iOS Simulator' build
+cd SharedKit && swift test
 ```
+
+`swift test` runs unit tests for the gesture and expression classifiers in `SharedKit` — no camera or device needed, since those are the parts most sensitive to threshold/geometry regressions.
 
 ## 📄 License
 
