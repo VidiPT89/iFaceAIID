@@ -120,11 +120,11 @@ struct FaceView: View {
             if !identityStore.knownFaces.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
-                        ForEach(identityStore.knownFaces, id: \.name) { face in
+                        ForEach(identityStore.knownFaces, id: \.self) { name in
                             HStack(spacing: 4) {
-                                Text(face.name).font(.caption)
+                                Text(name).font(.caption)
                                 Button {
-                                    identityStore.remove(name: face.name)
+                                    identityStore.remove(name: name)
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
                                 }

@@ -54,6 +54,7 @@ public enum LocalizedKey: String {
     case faceIdNamePlaceholder
     case faceIdRegister
     case faceIdNoFaceDetected
+    case faceIdSampleSaved
     case faceIdUnknown
     case faceIdPrivacyNote
 }
@@ -100,6 +101,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdNamePlaceholder: "Nome da pessoa",
         .faceIdRegister: "Registar rosto",
         .faceIdNoFaceDetected: "Nenhum rosto detetado.",
+        .faceIdSampleSaved: "Amostra guardada",
         .faceIdUnknown: "Rosto não reconhecido",
         .faceIdPrivacyNote: "Identificação aproximada, guardada só neste dispositivo — nunca enviada para nenhum servidor.",
     ],
@@ -144,6 +146,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdNamePlaceholder: "Person's name",
         .faceIdRegister: "Register face",
         .faceIdNoFaceDetected: "No face detected.",
+        .faceIdSampleSaved: "Sample saved",
         .faceIdUnknown: "Face not recognized",
         .faceIdPrivacyNote: "Approximate identification, stored only on this device — never sent to any server.",
     ],

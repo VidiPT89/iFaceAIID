@@ -29,11 +29,25 @@ public final class ExpressionBaselineTracker {
     /// camera angle, person swap) within a couple of seconds at ~30fps.
     private let adaptRate: CGFloat = 0.02
 
+    /// Hysteresis on top of the per-frame classification: a single frame's
+    /// result only becomes the displayed expression once it has repeated
+    /// for `requiredStreak` frames in a row. Without this, a classification
+    /// that flips for just one frame (still possible even after smoothing,
+    /// right at a threshold boundary) shows up as a visibly wrong badge
+    /// before correcting itself a frame later.
+    private var displayed: FacialExpression = .none
+    private var pending: FacialExpression = .none
+    private var pendingStreak = 0
+    private let requiredStreak = 3
+
     public init() {}
 
     public func reset() {
         baseline = nil
         smoothed = nil
+        displayed = .none
+        pending = .none
+        pendingStreak = 0
     }
 
     public func classify(_ scores: ExpressionScores) -> FacialExpression {
@@ -99,6 +113,15 @@ public final class ExpressionBaselineTracker {
             )
         }
 
-        return expression
+        if expression == pending {
+            pendingStreak += 1
+        } else {
+            pending = expression
+            pendingStreak = 1
+        }
+        if pendingStreak >= requiredStreak {
+            displayed = expression
+        }
+        return displayed
     }
 }

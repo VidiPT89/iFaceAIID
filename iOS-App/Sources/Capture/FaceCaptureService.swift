@@ -62,7 +62,8 @@ final class FaceCaptureService: NSObject, ObservableObject {
             guard let observation = try? FaceIdentification.featurePrint(from: snapshot.buffer, faceBoundingBox: snapshot.boundingBox) else { return }
             Task { @MainActor in
                 FaceIdentityStore.shared.register(name: name, observation: observation)
-                self?.registrationFeedback = nil
+                let count = FaceIdentityStore.shared.sampleCount(for: name)
+                self?.registrationFeedback = "\(LocalizationManager.shared.string(.faceIdSampleSaved)) (\(count)/\(FaceIdentityStore.maxSamples))"
             }
         }
     }
