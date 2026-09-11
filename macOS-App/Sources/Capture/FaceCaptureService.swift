@@ -77,6 +77,7 @@ final class FaceCaptureService: NSObject, ObservableObject {
             guard let device = AVCaptureDevice.default(for: .video),
                   let input = try? AVCaptureDeviceInput(device: device),
                   self.session.canAddInput(input) else {
+                print("[FaceAIID] could not open a camera device (device=\(String(describing: AVCaptureDevice.default(for: .video))))")
                 self.session.commitConfiguration()
                 Task { @MainActor in self.status = .failed }
                 return
