@@ -16,6 +16,7 @@ extension DetectedGesture {
         case .letterI: return .gestureLetterI
         case .letterL: return .gestureLetterL
         case .letterO: return .gestureLetterO
+        case .rockOn: return .gestureRockOn
         case .none: return .gestureNone
         }
     }

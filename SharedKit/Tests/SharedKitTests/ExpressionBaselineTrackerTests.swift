@@ -111,6 +111,26 @@ final class ExpressionBaselineTrackerTests: XCTestCase {
         XCTAssertEqual(feed(tracker, blinking, 5), .blink)
     }
 
+    /// A real blink lasts only 1-2 frames — far too brief to win the 3-of-5
+    /// majority vote used for held expressions. This is a regression test
+    /// for exactly that bug: blink must bypass the vote and display as soon
+    /// as the (smoothed) signal crosses the threshold, not require 3
+    /// repeated frames like a held smile does.
+    func testBlinkDisplaysWithoutWaitingForTheVote() {
+        let tracker = ExpressionBaselineTracker()
+        _ = feed(tracker, neutral, 10)
+        let blinking = ExpressionScores(
+            mouthCornerLift: neutral.mouthCornerLift,
+            mouthOpenAmount: neutral.mouthOpenAmount,
+            eyeOpenRatio: 0.05,
+            browRaise: neutral.browRaise
+        )
+        // Two frames is enough for the fast EMA smoothing to cross the
+        // blink threshold — well short of the 3 votes a held expression
+        // would need, proving blink bypasses the majority-vote hysteresis.
+        XCTAssertEqual(feed(tracker, blinking, 2), .blink)
+    }
+
     func testKeepsShowingAHeldExpressionDespiteOccasionalNeutralReadingFrames() {
         // Regression test for a real bug found this session: an earlier
         // version required 3 *consecutive* identical frames before

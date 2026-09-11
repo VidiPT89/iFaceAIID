@@ -143,6 +143,13 @@ final class HandGestureClassifierTests: XCTestCase {
         XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .shaka)
     }
 
+    func testRockOn() {
+        var fingers = allCurled
+        fingers["index"] = FingerSpec(extended: true)
+        fingers["pinky"] = FingerSpec(extended: true)
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .rockOn)
+    }
+
     func testILoveYou() {
         var fingers = allCurled
         fingers["thumb"] = FingerSpec(extended: true, dir: side)
