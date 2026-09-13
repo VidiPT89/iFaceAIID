@@ -3,7 +3,6 @@ import SharedKit
 
 struct RootView: View {
     @ObservedObject private var localization = LocalizationManager.shared
-    @State private var mode: AppMode = .hands
 
     var body: some View {
         VStack(spacing: 12) {
@@ -15,17 +14,7 @@ struct RootView: View {
             }
             .padding(.horizontal)
 
-            Picker("", selection: $mode) {
-                Text(localization.string(.modeHands)).tag(AppMode.hands)
-                Text(localization.string(.modeFace)).tag(AppMode.face)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-
-            switch mode {
-            case .hands: CameraView()
-            case .face: FaceView()
-            }
+            UnifiedView()
         }
         .padding(.top)
     }

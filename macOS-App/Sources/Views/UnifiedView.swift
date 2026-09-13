@@ -1,8 +1,12 @@
 import SwiftUI
 import SharedKit
 
-struct FaceView: View {
-    @StateObject private var capture = FaceCaptureService()
+/// Replaces the old Mãos/Rosto tab switcher: hands and face detection now
+/// run on one shared camera session (`UnifiedCaptureService`), so there's no
+/// reason to force a choice between them — both sets of overlays and badges
+/// are shown together over the same live preview.
+struct UnifiedView: View {
+    @StateObject private var capture = UnifiedCaptureService()
     @ObservedObject private var localization = LocalizationManager.shared
     @ObservedObject private var identityStore = FaceIdentityStore.shared
     @ObservedObject private var debugMode = DebugModeStore.shared
@@ -12,7 +16,7 @@ struct FaceView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text(localization.string(.heroSubtitleFace))
+            Text(localization.string(.heroSubtitleUnified))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -22,13 +26,21 @@ struct FaceView: View {
                     .fill(Color(nsColor: .underPageBackgroundColor))
 
                 if isRunning {
-                    // See the matching comment in CameraView.swift: macOS
+                    // Flipped as one unit so the preview and every overlay
+                    // stay pixel-aligned with each other — see the matching
+                    // comment that used to live in CameraView.swift: macOS
                     // cameras don't auto-mirror like iOS's front camera
-                    // preview does, so the preview+overlay are flipped
-                    // together here for a natural "mirror" view.
+                    // preview does.
                     ZStack {
                         CameraPreviewView(session: capture.session)
                             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+
+                        ForEach(capture.hands) { hand in
+                            HandOverlayShape(hand: hand.landmarks, videoSize: capture.videoSize)
+                                .stroke(BrandColor.accent, lineWidth: 3)
+                            LandmarkPointsShape(points: hand.landmarks.allLocations, videoSize: capture.videoSize)
+                                .fill(BrandColor.accentSecondary)
+                        }
 
                         if let faceLandmarks = capture.currentFaceLandmarks {
                             // Vision's landmark regions never reach the
@@ -57,26 +69,28 @@ struct FaceView: View {
 
                 if debugMode.isEnabled {
                     VStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            // Shown unconditionally (not just while
-                            // running): if the camera never starts, this is
-                            // the only way to see *why* — previously the
-                            // whole debug panel was gated behind isRunning,
-                            // so a stuck idle/denied/failed status gave zero
-                            // visible information even with debug mode on.
-                            Text("status: \(String(describing: capture.status))")
-                            if isRunning {
-                                Text("face: \(capture.faceDetected ? "yes" : "no")")
-                                if let s = capture.expressionScores {
-                                    Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                // Shown unconditionally (not just while
+                                // running): if the camera never starts, this
+                                // is the only way to see *why*.
+                                Text("status: \(String(describing: capture.status))")
+                                if isRunning {
+                                    Text("hands: \(capture.hands.count) · face: \(capture.faceDetected ? "yes" : "no")")
+                                    if let debug = capture.hands.first.flatMap({ HandGestureClassifier.debugInfo($0.landmarks) }) {
+                                        Text("thumb \(Int(debug.thumbAngle))° (\(debug.thumbExtended ? "out" : "in")) · pinch \(String(format: "%.2f", debug.pinch))")
+                                    }
+                                    if let s = capture.expressionScores {
+                                        Text(String(format: "lift %.3f · open %.3f · eye %.2f · brow %.3f", s.mouthCornerLift, s.mouthOpenAmount, s.eyeOpenRatio, s.browRaise))
+                                    }
                                 }
                             }
+                            .font(.system(.caption2, design: .monospaced))
+                            .padding(4)
+                            .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                            .foregroundStyle(.white)
+                            Spacer()
                         }
-                        .font(.system(.caption2, design: .monospaced))
-                        .padding(4)
-                        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
-                        .foregroundStyle(.white)
-                        HStack { Spacer() }
                         Spacer()
                     }
                     .padding(8)
@@ -86,6 +100,9 @@ struct FaceView: View {
                     Spacer()
                     if isRunning {
                         HStack(spacing: 8) {
+                            ForEach(capture.hands.filter { $0.gesture != .none }) { hand in
+                                badge(hand.localizedLabel(using: localization))
+                            }
                             if capture.expression != .none {
                                 badge(localization.string(capture.expression.localizedKey))
                             }
@@ -93,17 +110,20 @@ struct FaceView: View {
                                 badge(localization.string(capture.headMovement.localizedKey))
                             }
                         }
-                        if let match = capture.identityMatch {
-                            badge(match.name)
-                        } else {
-                            badge(localization.string(.faceIdUnknown), muted: true)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: capture.hands.map(\.gesture))
+                        if capture.faceDetected {
+                            if let match = capture.identityMatch {
+                                badge(match.name)
+                            } else {
+                                badge(localization.string(.faceIdUnknown), muted: true)
+                            }
                         }
                     }
                 }
                 .padding(.bottom, 12)
             }
             .aspectRatio(4 / 3, contentMode: .fit)
-            .frame(minWidth: 480, minHeight: 320)
+            .frame(minWidth: 480, minHeight: 360)
 
             Button {
                 if isRunning { capture.stop() } else { capture.start() }

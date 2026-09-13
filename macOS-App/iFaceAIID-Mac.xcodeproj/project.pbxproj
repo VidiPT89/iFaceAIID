@@ -8,27 +8,23 @@
 
 /* Begin PBXBuildFile section */
 		019D298CCD3420F27F24A032 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 42B2D119B87C9BB1B109292C /* SharedKit */; };
-		35A63AE11E3812666C1ACD11 /* FaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682CA3C8E2B25A86159ADB55 /* FaceView.swift */; };
 		4FB077D41F07E00396059B1B /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 080289D83A3DA3E64E96B4AB /* RootView.swift */; };
+		551D8C3745BE729407C50CCE /* UnifiedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3A5831F822715AE8AF6F4C /* UnifiedView.swift */; };
+		5A3189BC64E8D6C7AED1A076 /* UnifiedCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262CC4C17EBD641760187EB1 /* UnifiedCaptureService.swift */; };
 		698D23A9A9BCB317377F4B60 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB387F72E16C7DA7856E485 /* App.swift */; };
-		7C0B139A15083956080F39A4 /* CameraCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */; };
-		C9877AD937AAB234CA8E9E27 /* FaceCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E24CF1BF2E83E5F6A52E66 /* FaceCaptureService.swift */; };
 		CE50D757DC3017E290061878 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */; };
 		E181903F25334156EDCB5AFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6AF6BB03BF8DD66667CC57BE /* Assets.xcassets */; };
-		EA53E898203E4AFAE4A99BDC /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E03735F2CE19CBB09B7B6A /* CameraView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		080289D83A3DA3E64E96B4AB /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		0BB387F72E16C7DA7856E485 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		262CC4C17EBD641760187EB1 /* UnifiedCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedCaptureService.swift; sourceTree = "<group>"; };
 		3C1AB0E07BE4DE9A05D53073 /* iFaceAIID-Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iFaceAIID-Mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		51E24CF1BF2E83E5F6A52E66 /* FaceCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCaptureService.swift; sourceTree = "<group>"; };
-		682CA3C8E2B25A86159ADB55 /* FaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceView.swift; sourceTree = "<group>"; };
 		6AF6BB03BF8DD66667CC57BE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C3E03735F2CE19CBB09B7B6A /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
-		F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureService.swift; sourceTree = "<group>"; };
 		FAFC6924BF5693A914E550F2 /* SharedKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SharedKit; path = ../SharedKit; sourceTree = SOURCE_ROOT; };
+		FB3A5831F822715AE8AF6F4C /* UnifiedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,8 +42,7 @@
 		70BF982D2224E688BF990821 /* Capture */ = {
 			isa = PBXGroup;
 			children = (
-				F9A12C00650891D1CAC19F78 /* CameraCaptureService.swift */,
-				51E24CF1BF2E83E5F6A52E66 /* FaceCaptureService.swift */,
+				262CC4C17EBD641760187EB1 /* UnifiedCaptureService.swift */,
 			);
 			path = Capture;
 			sourceTree = "<group>";
@@ -73,9 +68,8 @@
 			isa = PBXGroup;
 			children = (
 				F739FAD0F65DC91200D3097E /* CameraPreviewView.swift */,
-				C3E03735F2CE19CBB09B7B6A /* CameraView.swift */,
-				682CA3C8E2B25A86159ADB55 /* FaceView.swift */,
 				080289D83A3DA3E64E96B4AB /* RootView.swift */,
+				FB3A5831F822715AE8AF6F4C /* UnifiedView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -188,12 +182,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				698D23A9A9BCB317377F4B60 /* App.swift in Sources */,
-				7C0B139A15083956080F39A4 /* CameraCaptureService.swift in Sources */,
 				CE50D757DC3017E290061878 /* CameraPreviewView.swift in Sources */,
-				EA53E898203E4AFAE4A99BDC /* CameraView.swift in Sources */,
-				C9877AD937AAB234CA8E9E27 /* FaceCaptureService.swift in Sources */,
-				35A63AE11E3812666C1ACD11 /* FaceView.swift in Sources */,
 				4FB077D41F07E00396059B1B /* RootView.swift in Sources */,
+				5A3189BC64E8D6C7AED1A076 /* UnifiedCaptureService.swift in Sources */,
+				551D8C3745BE729407C50CCE /* UnifiedView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

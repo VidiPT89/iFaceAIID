@@ -17,7 +17,7 @@ public enum LocalizedKey: String {
     case appTitle
     case appTagline
     case splashDevelopedBy
-    case heroSubtitle
+    case heroSubtitleUnified
     case cameraStart
     case cameraStop
     case cameraPermission
@@ -44,9 +44,6 @@ public enum LocalizedKey: String {
     case handRight
     case footerPrivacy
     case footerDevelopedBy
-    case modeHands
-    case modeFace
-    case heroSubtitleFace
     case expressionNone
     case expressionSmile
     case expressionSad
@@ -70,7 +67,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .appTitle: "Face AI ID",
         .appTagline: "Reconhecimento de gestos em tempo real",
         .splashDevelopedBy: "Criado por David Arsénio Martins",
-        .heroSubtitle: "Aponta a câmara e mostra a mão. Tudo é processado localmente no dispositivo.",
+        .heroSubtitleUnified: "Aponta a câmara à tua mão e à tua cara. Deteta gestos, expressões, movimento de cabeça e reconhece quem és — tudo ao mesmo tempo, processado localmente no dispositivo.",
         .cameraStart: "Iniciar câmara",
         .cameraStop: "Parar câmara",
         .cameraPermission: "É necessário dar permissão de acesso à câmara.",
@@ -97,9 +94,6 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .handRight: "Mão direita",
         .footerPrivacy: "Privacidade em primeiro lugar: o vídeo nunca sai do dispositivo.",
         .footerDevelopedBy: "Desenvolvido por",
-        .modeHands: "Mãos",
-        .modeFace: "Rosto",
-        .heroSubtitleFace: "Aponta a câmara à tua cara. Deteta sorriso, tristeza, surpresa, zanga, piscar e movimento de cabeça.",
         .expressionNone: "Nenhuma expressão detetada",
         .expressionSmile: "A sorrir 😊",
         .expressionSad: "Triste 😢",
@@ -121,7 +115,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .appTitle: "Face AI ID",
         .appTagline: "Real-time gesture recognition",
         .splashDevelopedBy: "Developed by David Arsénio Martins",
-        .heroSubtitle: "Point the camera and show your hand. Everything runs locally on-device.",
+        .heroSubtitleUnified: "Point the camera at your hand and your face. Detects gestures, expressions, head movement and recognizes who you are — all at once, processed locally on-device.",
         .cameraStart: "Start camera",
         .cameraStop: "Stop camera",
         .cameraPermission: "Camera access permission is required.",
@@ -148,9 +142,6 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .handRight: "Right hand",
         .footerPrivacy: "Privacy first: video never leaves the device.",
         .footerDevelopedBy: "Developed by",
-        .modeHands: "Hands",
-        .modeFace: "Face",
-        .heroSubtitleFace: "Point the camera at your face. Detects smile, sadness, surprise, anger, blinking and head movement.",
         .expressionNone: "No expression detected",
         .expressionSmile: "Smiling 😊",
         .expressionSad: "Sad 😢",
