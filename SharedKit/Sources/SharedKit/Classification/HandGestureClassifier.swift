@@ -63,23 +63,52 @@ public enum HandGestureClassifier {
         let pinkyExtended = extended[4]
         let nonThumbExtendedCount = extended[1...].filter { $0 }.count
 
+        // Hand scale (wrist to middle-MCP) so the pinch distances below stay
+        // correct regardless of how close the hand is to the camera. Shared
+        // by letters O, F and D, which all hinge on a thumb pinched against
+        // another fingertip rather than on that finger's own PIP angle.
+        let handScale: CGFloat = {
+            guard let wrist = hand.point(.wrist)?.location,
+                  let middleMcp = hand.point(.middleMCP)?.location else { return 0 }
+            return GeometryHelpers.distance(wrist, middleMcp)
+        }()
+        let thumbIndexPinch: CGFloat? = {
+            guard handScale > 0,
+                  let thumbTip = hand.point(.thumbTip)?.location,
+                  let indexTip = hand.point(.indexTip)?.location else { return nil }
+            return GeometryHelpers.distance(thumbTip, indexTip) / handScale
+        }()
+        let thumbMiddlePinch: CGFloat? = {
+            guard handScale > 0,
+                  let thumbTip = hand.point(.thumbTip)?.location,
+                  let middleTip = hand.point(.middleTip)?.location else { return nil }
+            return GeometryHelpers.distance(thumbTip, middleTip) / handScale
+        }()
+
         // ASL/LGP fingerspelling letter "O": thumb and index tips pinched
         // together into a circle, the other three fingers curled. Checked
-        // first, before closedFist would otherwise claim this shape. The
-        // pinch distance is normalized by wrist-to-middle-MCP distance
-        // (hand scale) so it stays correct regardless of hand-to-camera
-        // distance.
-        if let thumbTip = hand.point(.thumbTip)?.location,
-           let indexTip = hand.point(.indexTip)?.location,
-           let wrist = hand.point(.wrist)?.location,
-           let middleMcp = hand.point(.middleMCP)?.location {
-            let handScale = GeometryHelpers.distance(wrist, middleMcp)
-            if handScale > 0 {
-                let pinch = GeometryHelpers.distance(thumbTip, indexTip) / handScale
-                if pinch < 0.22, !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
-                    return .letterO
-                }
-            }
+        // first, before closedFist would otherwise claim this shape.
+        if let pinch = thumbIndexPinch, pinch < 0.22,
+           !indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+            return .letterO
+        }
+
+        // ASL/LGP fingerspelling letter "F": thumb and index pinched exactly
+        // like "O" above, but the other three fingers are extended straight
+        // out instead of curled — the pinch condition is what tells the two
+        // apart, not finger-extension state alone.
+        if let pinch = thumbIndexPinch, pinch < 0.22,
+           middleExtended, ringExtended, pinkyExtended {
+            return .letterF
+        }
+
+        // ASL/LGP fingerspelling letter "D": index extended straight up,
+        // thumb curled in to touch the middle fingertip (not the index
+        // tip, which is what distinguishes it from "pointing" below), ring
+        // and pinky curled down.
+        if let pinch = thumbMiddlePinch, pinch < 0.25,
+           indexExtended, !middleExtended, !ringExtended, !pinkyExtended {
+            return .letterD
         }
 
         // ASL/LGP fingerspelling letter "L": thumb and index extended,
@@ -101,6 +130,13 @@ public enum HandGestureClassifier {
             // Vision's coordinate space is bottom-left origin, so "up" means a larger y.
             if thumbTip.y > thumbMcp.y + 0.02 { return .thumbsUp }
             if thumbTip.y < thumbMcp.y - 0.02 { return .thumbsDown }
+            // ASL/LGP fingerspelling letter "A": same fist-with-extended-thumb
+            // shape as thumbs up/down, but held roughly horizontal instead of
+            // pointing up or down. Without this case the shape fell through
+            // to "none" — a fist with a sideways thumb matched neither the
+            // thumbsUp/Down y-thresholds above nor closedFist below (which
+            // requires the thumb *not* extended).
+            return .letterA
         }
 
         // Shaka / ASL-LGP "Y": thumb and pinky extended, the three middle

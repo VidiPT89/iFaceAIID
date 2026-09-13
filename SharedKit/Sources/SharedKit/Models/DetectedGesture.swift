@@ -8,6 +8,9 @@ public enum DetectedGesture: String, Sendable, CaseIterable {
     case threeFingers
     case shaka
     case iLoveYou
+    case letterA
+    case letterD
+    case letterF
     case letterI
     case letterL
     case letterO

@@ -193,4 +193,70 @@ final class HandGestureClassifierTests: XCTestCase {
 
         XCTAssertEqual(HandGestureClassifier.classify(HandLandmarks(points: points)), .letterO)
     }
+
+    func testLetterF() {
+        // Same thumb-index pinch as "O" above, but middle/ring/pinky
+        // extended instead of curled — the pinch alone is what separates F
+        // from O, so this is built the same hand-placed way as testLetterO.
+        var points: [HandLandmarks.Joint: HandPoint] = [
+            .wrist: HandPoint(x: wrist.x, y: wrist.y, confidence: 1),
+            .thumbCMC: HandPoint(x: mcps["thumb"]!.x, y: mcps["thumb"]!.y, confidence: 1),
+            .thumbIP: HandPoint(x: 0.37, y: 0.37, confidence: 1),
+            .thumbTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+            .indexMCP: HandPoint(x: mcps["index"]!.x, y: mcps["index"]!.y, confidence: 1),
+            .indexPIP: HandPoint(x: 0.43, y: 0.37, confidence: 1),
+            .indexTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+        ]
+        let middle = extendedJoints(mcps["middle"]!, up)
+        points[.middleMCP] = HandPoint(x: mcps["middle"]!.x, y: mcps["middle"]!.y, confidence: 1)
+        points[.middlePIP] = HandPoint(x: middle.pip.x, y: middle.pip.y, confidence: 1)
+        points[.middleTip] = HandPoint(x: middle.tip.x, y: middle.tip.y, confidence: 1)
+        let ring = extendedJoints(mcps["ring"]!, up)
+        points[.ringMCP] = HandPoint(x: mcps["ring"]!.x, y: mcps["ring"]!.y, confidence: 1)
+        points[.ringPIP] = HandPoint(x: ring.pip.x, y: ring.pip.y, confidence: 1)
+        points[.ringTip] = HandPoint(x: ring.tip.x, y: ring.tip.y, confidence: 1)
+        let pinky = extendedJoints(mcps["pinky"]!, up)
+        points[.littleMCP] = HandPoint(x: mcps["pinky"]!.x, y: mcps["pinky"]!.y, confidence: 1)
+        points[.littlePIP] = HandPoint(x: pinky.pip.x, y: pinky.pip.y, confidence: 1)
+        points[.littleTip] = HandPoint(x: pinky.tip.x, y: pinky.tip.y, confidence: 1)
+
+        XCTAssertEqual(HandGestureClassifier.classify(HandLandmarks(points: points)), .letterF)
+    }
+
+    func testLetterD() {
+        // Index extended straight up; thumb curled in to touch the middle
+        // fingertip (not the index tip, which would otherwise read as
+        // "pointing"); ring and pinky curled down.
+        let index = extendedJoints(mcps["index"]!, up)
+        var points: [HandLandmarks.Joint: HandPoint] = [
+            .wrist: HandPoint(x: wrist.x, y: wrist.y, confidence: 1),
+            .indexMCP: HandPoint(x: mcps["index"]!.x, y: mcps["index"]!.y, confidence: 1),
+            .indexPIP: HandPoint(x: index.pip.x, y: index.pip.y, confidence: 1),
+            .indexTip: HandPoint(x: index.tip.x, y: index.tip.y, confidence: 1),
+        ]
+        let middle = curledJoints(mcps["middle"]!, up)
+        points[.middleMCP] = HandPoint(x: mcps["middle"]!.x, y: mcps["middle"]!.y, confidence: 1)
+        points[.middlePIP] = HandPoint(x: middle.pip.x, y: middle.pip.y, confidence: 1)
+        points[.middleTip] = HandPoint(x: middle.tip.x, y: middle.tip.y, confidence: 1)
+        // Thumb bent in to touch the middle fingertip directly.
+        points[.thumbCMC] = HandPoint(x: mcps["thumb"]!.x, y: mcps["thumb"]!.y, confidence: 1)
+        points[.thumbIP] = HandPoint(x: (mcps["thumb"]!.x + middle.tip.x) / 2, y: (mcps["thumb"]!.y + middle.tip.y) / 2, confidence: 1)
+        points[.thumbTip] = HandPoint(x: middle.tip.x, y: middle.tip.y, confidence: 1)
+        let ring = curledJoints(mcps["ring"]!, up)
+        points[.ringMCP] = HandPoint(x: mcps["ring"]!.x, y: mcps["ring"]!.y, confidence: 1)
+        points[.ringPIP] = HandPoint(x: ring.pip.x, y: ring.pip.y, confidence: 1)
+        points[.ringTip] = HandPoint(x: ring.tip.x, y: ring.tip.y, confidence: 1)
+        let pinky = curledJoints(mcps["pinky"]!, up)
+        points[.littleMCP] = HandPoint(x: mcps["pinky"]!.x, y: mcps["pinky"]!.y, confidence: 1)
+        points[.littlePIP] = HandPoint(x: pinky.pip.x, y: pinky.pip.y, confidence: 1)
+        points[.littleTip] = HandPoint(x: pinky.tip.x, y: pinky.tip.y, confidence: 1)
+
+        XCTAssertEqual(HandGestureClassifier.classify(HandLandmarks(points: points)), .letterD)
+    }
+
+    func testLetterA() {
+        var fingers = allCurled
+        fingers["thumb"] = FingerSpec(extended: true, dir: side)
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .letterA)
+    }
 }

@@ -7,11 +7,12 @@
 ## ✨ Features
 
 - ✅ Live hand gesture recognition for up to 2 hands at once, each labeled as your left/right hand — thumbs
-  up/down, open palm, closed fist, peace sign, pointing, three fingers (W), shaka, the ASL/LGP "I love
-  you" sign, and the fingerspelling letters I, L and O — via `VNDetectHumanHandPoseRequest`. This is a
-  curated set of static hand shapes, **not** full sign-language recognition and **not** the full
-  fingerspelling alphabet — real sign language (and most other letters, e.g. A, B, C, J, Z) needs a
-  sequence model trained on real examples, not a single-frame geometric classifier
+  up/down, open palm, closed fist, peace sign, pointing, three fingers (W), shaka, rock on, the ASL/LGP "I
+  love you" sign, and the fingerspelling letters A, D, F, I, L and O — via `VNDetectHumanHandPoseRequest`.
+  This is a curated set of static hand shapes, **not** full sign-language recognition and **not** the full
+  fingerspelling alphabet — real sign language (and most other letters, e.g. B, C, J, Z) needs a sequence
+  model trained on real examples, or a way to measure finger curvature/overlap this classifier doesn't
+  attempt
 - ✅ Natural "mirror" camera preview on both platforms (iOS mirrors automatically; macOS cameras don't
   auto-mirror like a front-facing iPhone camera does, so it's mirrored explicitly to match)
 - ✅ Facial expression recognition — smile, sad, surprised, angry, blinking — via `VNDetectFaceLandmarksRequest` heuristics. Tongue-out is **not** detected: Vision's face landmarks don't track the tongue at all

@@ -13,6 +13,9 @@ extension DetectedGesture {
         case .threeFingers: return .gestureThreeFingers
         case .shaka: return .gestureShaka
         case .iLoveYou: return .gestureILoveYou
+        case .letterA: return .gestureLetterA
+        case .letterD: return .gestureLetterD
+        case .letterF: return .gestureLetterF
         case .letterI: return .gestureLetterI
         case .letterL: return .gestureLetterL
         case .letterO: return .gestureLetterO

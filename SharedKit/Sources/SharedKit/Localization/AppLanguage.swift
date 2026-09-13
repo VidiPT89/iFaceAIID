@@ -33,6 +33,9 @@ public enum LocalizedKey: String {
     case gestureThreeFingers
     case gestureShaka
     case gestureILoveYou
+    case gestureLetterA
+    case gestureLetterD
+    case gestureLetterF
     case gestureLetterI
     case gestureLetterL
     case gestureLetterO
@@ -83,6 +86,9 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureThreeFingers: "Três dedos (W) 🤟",
         .gestureShaka: "Shaka 🤙",
         .gestureILoveYou: "Amo-te (LGP/ASL) 🤟",
+        .gestureLetterA: "Letra A (LGP/ASL) ✊",
+        .gestureLetterD: "Letra D (LGP/ASL) ☝️",
+        .gestureLetterF: "Letra F (LGP/ASL) 👌",
         .gestureLetterI: "Letra I (LGP/ASL) 🤙",
         .gestureLetterL: "Letra L (LGP/ASL) 👆",
         .gestureLetterO: "Letra O (LGP/ASL) 👌",
@@ -131,6 +137,9 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gestureThreeFingers: "Three fingers (W) 🤟",
         .gestureShaka: "Shaka 🤙",
         .gestureILoveYou: "I love you (ASL/LGP) 🤟",
+        .gestureLetterA: "Letter A (ASL/LGP) ✊",
+        .gestureLetterD: "Letter D (ASL/LGP) ☝️",
+        .gestureLetterF: "Letter F (ASL/LGP) 👌",
         .gestureLetterI: "Letter I (ASL/LGP) 🤙",
         .gestureLetterL: "Letter L (ASL/LGP) 👆",
         .gestureLetterO: "Letter O (ASL/LGP) 👌",
