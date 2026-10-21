@@ -65,12 +65,13 @@ Select the corresponding scheme and run on a simulator or device.
 
 ## 📖 Usage
 
-Launch either app and switch between **Hands** and **Face** with the segmented control at the top:
+Press **Start camera** to detect hands, facial expressions and head movements together in one live preview.
 
-- **Hands**: show a hand shape to get 👍 / ✋ / ✊ / ✌️ / ☝️ recognized in an animated badge, with the hand
-  skeleton drawn live over the feed.
-- **Face**: smile, frown, look surprised, nod or shake your head for expression/head-movement badges; type
-  a name and tap **Register face** to store it, then get recognized (or "not recognized") live.
+- Show a hand shape to see its label and landmark overlay.
+- Smile, nod or shake your head to see expression and movement badges.
+- Type a name and press **Register face** to save a local sample. On macOS, registration is available only while a face is detected, and the name stays filled for additional samples.
+- On macOS, a progress indicator appears during startup, which can be cancelled. If permission is denied, **Open camera settings** takes you to the relevant system settings. A missing camera has its own message.
+- Press **Stop camera** to stop capture and clear the current results. You can start it again without recreating the window.
 
 Switch language and appearance at any time from the toolbar.
 
@@ -79,7 +80,16 @@ Switch language and appearance at any time from the toolbar.
 ```bash
 xcodebuild -project macOS-App/iFaceAIID-Mac.xcodeproj -scheme iFaceAIID-Mac -destination 'platform=macOS' build
 xcodebuild -project iOS-App/iFaceAIID.xcodeproj -scheme iFaceAIID -destination 'generic/platform=iOS Simulator' build
-cd SharedKit && swift test
+swift test --package-path SharedKit
+swift test --package-path macOS-App
+```
+
+The macOS target uses Hardened Runtime and must be signed with the camera entitlement in
+`macOS-App/iFaceAIID-Mac.entitlements`. Both Xcode configurations and `project.yml` reference it.
+After building, verify the signed app with:
+
+```bash
+python3 scripts/check-camera-entitlement.py /path/to/iFaceAIID-Mac.app
 ```
 
 `swift test` runs unit tests for the gesture and expression classifiers in `SharedKit` — no camera or device needed, since those are the parts most sensitive to threshold/geometry regressions.

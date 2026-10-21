@@ -13,11 +13,17 @@ public enum AppLanguage: String, CaseIterable, Sendable {
     }
 }
 
-public enum LocalizedKey: String {
+public enum LocalizedKey: String, Sendable {
     case appTitle
     case appTagline
     case splashDevelopedBy
     case heroSubtitleUnified
+    case cameraCancel
+    case cameraStarting
+    case cameraReady
+    case cameraUnavailable
+    case cameraOpenSettings
+    case faceIdRegistrationFailed
     case cameraStart
     case cameraStop
     case cameraPermission
@@ -68,6 +74,12 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .appTagline: "Reconhecimento de gestos em tempo real",
         .splashDevelopedBy: "Criado por David Arsénio Martins",
         .heroSubtitleUnified: "Aponta a câmara à tua mão e à tua cara. Deteta gestos, expressões, movimento de cabeça e reconhece quem és — tudo ao mesmo tempo, processado localmente no dispositivo.",
+        .cameraCancel: "Cancelar arranque",
+        .cameraStarting: "A iniciar a câmara…",
+        .cameraReady: "Pronto para começar. Carrega em Iniciar câmara.",
+        .cameraUnavailable: "Não foi encontrada nenhuma câmara. Liga uma câmara e tenta novamente.",
+        .cameraOpenSettings: "Abrir definições de câmara",
+        .faceIdRegistrationFailed: "Não foi possível guardar este rosto. Tenta novamente com boa iluminação.",
         .cameraStart: "Iniciar câmara",
         .cameraStop: "Parar câmara",
         .cameraPermission: "É necessário dar permissão de acesso à câmara.",
@@ -116,6 +128,12 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .appTagline: "Real-time gesture recognition",
         .splashDevelopedBy: "Developed by David Arsénio Martins",
         .heroSubtitleUnified: "Point the camera at your hand and your face. Detects gestures, expressions, head movement and recognizes who you are — all at once, processed locally on-device.",
+        .cameraCancel: "Cancel startup",
+        .cameraStarting: "Starting camera…",
+        .cameraReady: "Ready when you are. Press Start camera.",
+        .cameraUnavailable: "No camera found. Connect a camera and try again.",
+        .cameraOpenSettings: "Open camera settings",
+        .faceIdRegistrationFailed: "Could not save this face. Try again with good lighting.",
         .cameraStart: "Start camera",
         .cameraStop: "Stop camera",
         .cameraPermission: "Camera access permission is required.",

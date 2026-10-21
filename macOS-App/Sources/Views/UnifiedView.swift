@@ -61,10 +61,27 @@ struct UnifiedView: View {
                     }
                     .scaleEffect(x: -1, y: 1)
                 } else {
-                    Text(placeholderText)
-                        .foregroundStyle(.secondary)
-                        .padding()
-                        .multilineTextAlignment(.center)
+                    VStack(spacing: 16) {
+                        if capture.isStarting {
+                            ProgressView()
+                        } else {
+                            Image(systemName: capture.status == .denied ? "camera.fill.badge.ellipsis" : "camera")
+                                .font(.system(size: 36))
+                                .foregroundStyle(BrandColor.accent)
+                        }
+                        Text(placeholderText)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        if capture.status == .denied {
+                            Button(localization.string(.cameraOpenSettings)) {
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .padding()
                 }
 
                 if debugMode.isEnabled {
@@ -74,7 +91,7 @@ struct UnifiedView: View {
                                 // Shown unconditionally (not just while
                                 // running): if the camera never starts, this
                                 // is the only way to see *why*.
-                                Text("status: \(String(describing: capture.status))")
+                                Text("status: \(capture.isStarting ? "starting" : String(describing: capture.status))")
                                 if isRunning {
                                     Text("hands: \(capture.hands.count) · face: \(capture.faceDetected ? "yes" : "no")")
                                     if let debug = capture.hands.first.flatMap({ HandGestureClassifier.debugInfo($0.landmarks) }) {
@@ -126,9 +143,9 @@ struct UnifiedView: View {
             .frame(minWidth: 480, minHeight: 360)
 
             Button {
-                if isRunning { capture.stop() } else { capture.start() }
+                if isRunning || capture.isStarting { capture.stop() } else { capture.start() }
             } label: {
-                Text(isRunning ? localization.string(.cameraStop) : localization.string(.cameraStart))
+                Text(localization.string(capture.isStarting ? .cameraCancel : (isRunning ? .cameraStop : .cameraStart)))
                     .font(.headline)
                     .foregroundStyle(.black)
                     .padding(.horizontal, 32)
@@ -143,9 +160,8 @@ struct UnifiedView: View {
                         .textFieldStyle(.roundedBorder)
                     Button(localization.string(.faceIdRegister)) {
                         capture.registerCurrentFace(name: nameInput)
-                        nameInput = ""
                     }
-                    .disabled(nameInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(nameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !capture.faceDetected)
                 }
 
                 if let feedback = capture.registrationFeedback {
@@ -177,6 +193,10 @@ struct UnifiedView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
+        .onDisappear {
+            // Defer observable changes until SwiftUI has finished removing the view.
+            Task { @MainActor in capture.stop() }
+        }
     }
 
     private func badge(_ text: String, muted: Bool = false) -> some View {
@@ -189,10 +209,11 @@ struct UnifiedView: View {
     }
 
     private var placeholderText: String {
+        if capture.isStarting { return localization.string(.cameraStarting) }
         switch capture.status {
         case .denied: return localization.string(.cameraDenied)
-        case .failed: return localization.string(.cameraError)
-        case .idle, .running: return localization.string(.cameraPermission)
+        case .failed: return localization.string(capture.failureMessage)
+        case .idle, .running: return localization.string(.cameraReady)
         }
     }
 }

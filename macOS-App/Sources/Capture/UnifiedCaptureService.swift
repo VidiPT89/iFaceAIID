@@ -22,6 +22,13 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
     @Published private(set) var status: CaptureStatus = .idle
     @Published var identityMatch: (name: String, distance: Float)?
     @Published var registrationFeedback: String?
+    @Published private(set) var isStarting = false
+    @Published private(set) var failureMessage: LocalizedKey = .cameraError
+    private let authorizationStatus: () -> AVAuthorizationStatus
+    private let requestAccess: (@escaping @Sendable (Bool) -> Void) -> Void
+    private var generation = UUID()
+    nonisolated(unsafe) private var activeGeneration: UUID?
+    nonisolated(unsafe) private var isConfigured = false
 
     // Configuration and delegate callbacks for these run entirely on `queue`,
     // a dedicated serial queue — never touched concurrently, just not
@@ -42,82 +49,161 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
     nonisolated(unsafe) private var frameCounter = 0
     nonisolated private static let identityFrameInterval = 10
 
-    override init() {
+    override convenience init() {
+        self.init(
+            authorizationStatus: { AVCaptureDevice.authorizationStatus(for: .video) },
+            requestAccess: { AVCaptureDevice.requestAccess(for: .video, completionHandler: $0) }
+        )
+    }
+
+    init(
+        authorizationStatus: @escaping () -> AVAuthorizationStatus,
+        requestAccess: @escaping (@escaping @Sendable (Bool) -> Void) -> Void
+    ) {
+        self.authorizationStatus = authorizationStatus
+        self.requestAccess = requestAccess
         super.init()
         handRequest.maximumHandCount = 2
     }
 
     func start() {
-        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            guard let self else { return }
-            Task { @MainActor in
-                guard granted else {
-                    self.status = .denied
-                    return
+        guard !isStarting, status != .running else { return }
+        generation = UUID()
+        let token = generation
+        isStarting = true
+        status = .idle
+        registrationFeedback = nil
+        switch authorizationStatus() {
+        case .authorized:
+            configureSession(token: token)
+        case .notDetermined:
+            requestAccess { [weak self] granted in
+                Task { @MainActor in
+                    guard let self, self.generation == token else { return }
+                    if granted {
+                        self.configureSession(token: token)
+                    } else {
+                        self.isStarting = false
+                        self.status = .denied
+                    }
                 }
-                self.configureSession()
             }
+        default:
+            isStarting = false
+            status = .denied
         }
     }
 
     func stop() {
+        generation = UUID() // Ignore permission responses and queued frames from the old run.
+        isStarting = false
         status = .idle
-        tracker.reset()
-        expressionTracker.reset()
-        queue.async { [session, weak self] in
+        hands = []
+        expression = .none
+        expressionScores = nil
+        headMovement = .none
+        identityMatch = nil
+        faceDetected = false
+        currentFaceLandmarks = nil
+        currentFaceBoundingBox = .zero
+        registrationFeedback = nil
+        queue.async { [self] in
+            activeGeneration = nil
             if session.isRunning { session.stopRunning() }
-            self?.gestureStabilizers.removeAll()
+            tracker.reset()
+            expressionTracker.reset()
+            gestureStabilizers.removeAll()
+            latestPixelBuffer = nil
+            latestFaceBoundingBox = nil
+            frameCounter = 0
         }
     }
 
     func registerCurrentFace(name: String) {
-        guard let pixelBuffer = latestPixelBuffer, let box = latestFaceBoundingBox else {
-            registrationFeedback = LocalizationManager.shared.string(.faceIdNoFaceDetected)
-            return
-        }
-        let snapshot = PixelBufferSnapshot(buffer: pixelBuffer, boundingBox: box)
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, status == .running, faceDetected else { return }
+        let token = generation
         queue.async { [weak self] in
-            guard let observation = try? FaceIdentification.featurePrint(from: snapshot.buffer, faceBoundingBox: snapshot.boundingBox) else { return }
-            Task { @MainActor in
-                FaceIdentityStore.shared.register(name: name, observation: observation)
-                let count = FaceIdentityStore.shared.sampleCount(for: name)
-                self?.registrationFeedback = "\(LocalizationManager.shared.string(.faceIdSampleSaved)) (\(count)/\(FaceIdentityStore.maxSamples))"
-            }
-        }
-    }
-
-    private func configureSession() {
-        queue.async { [weak self] in
-            guard let self else { return }
-            self.session.beginConfiguration()
-            self.session.sessionPreset = .high
-
-            guard let device = AVCaptureDevice.default(for: .video),
-                  let input = try? AVCaptureDeviceInput(device: device),
-                  self.session.canAddInput(input) else {
-                print("[FaceAIID] could not open a camera device (device=\(String(describing: AVCaptureDevice.default(for: .video))))")
-                self.session.commitConfiguration()
-                Task { @MainActor in self.status = .failed }
+            guard let self, self.activeGeneration == token else { return }
+            // Read the frame on the same queue that writes it, never on MainActor.
+            guard let buffer = self.latestPixelBuffer, let box = self.latestFaceBoundingBox else {
+                Task { @MainActor in
+                    guard self.generation == token else { return }
+                    self.registrationFeedback = LocalizationManager.shared.string(.faceIdNoFaceDetected)
+                }
                 return
             }
-            self.session.addInput(input)
-
-            self.output.setSampleBufferDelegate(self, queue: self.queue)
-            if self.session.canAddOutput(self.output) {
-                self.session.addOutput(self.output)
+            let observation = try? FaceIdentification.featurePrint(from: buffer, faceBoundingBox: box)
+            Task { @MainActor in
+                guard self.generation == token else { return }
+                guard let observation else {
+                    self.registrationFeedback = LocalizationManager.shared.string(.faceIdRegistrationFailed)
+                    return
+                }
+                FaceIdentityStore.shared.register(name: name, observation: observation)
+                let count = FaceIdentityStore.shared.sampleCount(for: name)
+                self.registrationFeedback = "\(LocalizationManager.shared.string(.faceIdSampleSaved)) (\(count)/\(FaceIdentityStore.maxSamples))"
             }
-            self.session.commitConfiguration()
-            self.session.startRunning()
-            Task { @MainActor in self.status = .running }
         }
     }
-}
 
-/// CVPixelBuffer isn't Sendable, but it's only ever read (never mutated)
-/// after being handed off here, so it's safe to cross the queue boundary.
-private struct PixelBufferSnapshot: @unchecked Sendable {
-    let buffer: CVPixelBuffer
-    let boundingBox: CGRect
+    private func configureSession(token: UUID) {
+        queue.async { [weak self] in
+            guard let self else { return }
+            if !self.isConfigured {
+                self.session.beginConfiguration()
+                self.session.sessionPreset = .high
+                guard let device = AVCaptureDevice.default(for: .video) else {
+                    self.session.commitConfiguration()
+                    self.reportFailure(.cameraUnavailable, token: token)
+                    return
+                }
+                do {
+                    let input = try AVCaptureDeviceInput(device: device)
+                    guard self.session.canAddInput(input) else {
+                        self.session.commitConfiguration()
+                        self.reportFailure(.cameraError, token: token)
+                        return
+                    }
+                    self.session.addInput(input)
+                    guard self.session.canAddOutput(self.output) else {
+                        self.session.removeInput(input)
+                        self.session.commitConfiguration()
+                        self.reportFailure(.cameraError, token: token)
+                        return
+                    }
+                    self.output.alwaysDiscardsLateVideoFrames = true
+                    self.output.setSampleBufferDelegate(self, queue: self.queue)
+                    self.session.addOutput(self.output)
+                    self.session.commitConfiguration()
+                    self.isConfigured = true
+                } catch {
+                    self.session.commitConfiguration()
+                    self.reportFailure(.cameraError, token: token)
+                    return
+                }
+            }
+            self.activeGeneration = token
+            if !self.session.isRunning { self.session.startRunning() }
+            let running = self.session.isRunning
+            Task { @MainActor in
+                guard self.generation == token else { return }
+                self.isStarting = false
+                self.status = running ? .running : .failed
+                self.failureMessage = .cameraError
+            }
+        }
+    }
+
+    nonisolated private func reportFailure(_ message: LocalizedKey, token: UUID) {
+        Task { @MainActor in
+            guard self.generation == token else { return }
+            self.failureMessage = message
+            self.isStarting = false
+            self.status = .failed
+        }
+    }
+
 }
 
 extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -126,7 +212,8 @@ extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        guard let token = activeGeneration,
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
         let videoSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
 
@@ -153,7 +240,11 @@ extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
 
             guard let face = faceRequest.results?.first, let landmarks2D = face.landmarks else {
                 tracker.reset()
+                expressionTracker.reset()
+                latestPixelBuffer = nil
+                latestFaceBoundingBox = nil
                 Task { @MainActor in
+                    guard self.generation == token, self.status == .running else { return }
                     self.hands = detectedHands
                     self.videoSize = videoSize
                     self.expression = .none
@@ -183,6 +274,7 @@ extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 : nil
 
             Task { @MainActor in
+                guard self.generation == token, self.status == .running else { return }
                 self.hands = detectedHands
                 self.videoSize = videoSize
                 self.expression = expression
@@ -196,6 +288,8 @@ extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         } catch {
+            latestPixelBuffer = nil
+            latestFaceBoundingBox = nil
             // Best-effort per-frame detection; a single failed frame is not fatal.
             print("[FaceAIID] detection frame failed: \(error)")
         }
