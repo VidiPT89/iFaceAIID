@@ -86,6 +86,7 @@ private func buildHand(_ fingers: [String: FingerSpec]) -> HandLandmarks {
 final class HandGestureClassifierTests: XCTestCase {
     func testOpenPalm() {
         var fingers = allCurled
+        fingers["thumb"] = FingerSpec(extended: true, dir: CGPoint(x: -1, y: 0.3))
         fingers["index"] = FingerSpec(extended: true)
         fingers["middle"] = FingerSpec(extended: true)
         fingers["ring"] = FingerSpec(extended: true)
@@ -117,9 +118,45 @@ final class HandGestureClassifierTests: XCTestCase {
 
     func testPeaceSign() {
         var fingers = allCurled
+        fingers["index"] = FingerSpec(extended: true, dir: CGPoint(x: -0.5, y: 1))
+        fingers["middle"] = FingerSpec(extended: true, dir: CGPoint(x: 0.5, y: 1))
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .peaceSign)
+    }
+
+    func testLetterUFingersTogether() {
+        var fingers = allCurled
         fingers["index"] = FingerSpec(extended: true)
         fingers["middle"] = FingerSpec(extended: true)
-        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .peaceSign)
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .letterU)
+    }
+
+    func testFingersCrossed() {
+        var fingers = allCurled
+        fingers["index"] = FingerSpec(extended: true, dir: CGPoint(x: 0.6, y: 1))
+        fingers["middle"] = FingerSpec(extended: true, dir: CGPoint(x: -0.6, y: 1))
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .fingersCrossed)
+    }
+
+    func testLetterBFourFingersThumbFolded() {
+        var fingers = allCurled
+        for name in ["index", "middle", "ring", "pinky"] { fingers[name] = FingerSpec(extended: true) }
+        XCTAssertEqual(HandGestureClassifier.classify(buildHand(fingers)), .letterB)
+    }
+
+    func testHalfOpenFingersMatchNothing() {
+        // A relaxed hand: thumb and index out, the other three bent ~130°
+        // (between extended and folded). This used to read as "L".
+        var fingers = allCurled
+        fingers["thumb"] = FingerSpec(extended: true, dir: side)
+        fingers["index"] = FingerSpec(extended: true)
+        var points = buildHand(fingers).points
+        for (mcp, pip, tip) in [(HandLandmarks.Joint.middleMCP, HandLandmarks.Joint.middlePIP, HandLandmarks.Joint.middleTip),
+                                (.ringMCP, .ringPIP, .ringTip), (.littleMCP, .littlePIP, .littleTip)] {
+            let base = points[mcp]!
+            points[pip] = HandPoint(x: base.x, y: base.y + 0.1, confidence: 1)
+            points[tip] = HandPoint(x: base.x + 0.06, y: base.y + 0.17, confidence: 1)
+        }
+        XCTAssertEqual(HandGestureClassifier.classify(HandLandmarks(points: points)), .none)
     }
 
     func testThreeFingers() {
@@ -172,11 +209,13 @@ final class HandGestureClassifierTests: XCTestCase {
         var points: [HandLandmarks.Joint: HandPoint] = [
             .wrist: HandPoint(x: wrist.x, y: wrist.y, confidence: 1),
             .thumbCMC: HandPoint(x: mcps["thumb"]!.x, y: mcps["thumb"]!.y, confidence: 1),
-            .thumbIP: HandPoint(x: 0.37, y: 0.37, confidence: 1),
-            .thumbTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+            // The index arcs up and forward, then back to meet the thumb —
+            // its tip ends well away from its own knuckle, unlike a fist's.
+            .thumbIP: HandPoint(x: 0.36, y: 0.42, confidence: 1),
+            .thumbTip: HandPoint(x: 0.36, y: 0.53, confidence: 1),
             .indexMCP: HandPoint(x: mcps["index"]!.x, y: mcps["index"]!.y, confidence: 1),
-            .indexPIP: HandPoint(x: 0.43, y: 0.37, confidence: 1),
-            .indexTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+            .indexPIP: HandPoint(x: 0.43, y: 0.52, confidence: 1),
+            .indexTip: HandPoint(x: 0.37, y: 0.53, confidence: 1),
         ]
         let middle = curledJoints(mcps["middle"]!, up)
         points[.middleMCP] = HandPoint(x: mcps["middle"]!.x, y: mcps["middle"]!.y, confidence: 1)
@@ -201,11 +240,13 @@ final class HandGestureClassifierTests: XCTestCase {
         var points: [HandLandmarks.Joint: HandPoint] = [
             .wrist: HandPoint(x: wrist.x, y: wrist.y, confidence: 1),
             .thumbCMC: HandPoint(x: mcps["thumb"]!.x, y: mcps["thumb"]!.y, confidence: 1),
-            .thumbIP: HandPoint(x: 0.37, y: 0.37, confidence: 1),
-            .thumbTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+            // The index arcs up and forward, then back to meet the thumb —
+            // its tip ends well away from its own knuckle, unlike a fist's.
+            .thumbIP: HandPoint(x: 0.36, y: 0.42, confidence: 1),
+            .thumbTip: HandPoint(x: 0.36, y: 0.53, confidence: 1),
             .indexMCP: HandPoint(x: mcps["index"]!.x, y: mcps["index"]!.y, confidence: 1),
-            .indexPIP: HandPoint(x: 0.43, y: 0.37, confidence: 1),
-            .indexTip: HandPoint(x: 0.4, y: 0.4, confidence: 1),
+            .indexPIP: HandPoint(x: 0.43, y: 0.52, confidence: 1),
+            .indexTip: HandPoint(x: 0.37, y: 0.53, confidence: 1),
         ]
         let middle = extendedJoints(mcps["middle"]!, up)
         points[.middleMCP] = HandPoint(x: mcps["middle"]!.x, y: mcps["middle"]!.y, confidence: 1)

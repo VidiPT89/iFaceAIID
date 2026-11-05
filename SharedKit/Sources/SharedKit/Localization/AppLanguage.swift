@@ -45,6 +45,9 @@ public enum LocalizedKey: String, Sendable {
     case gestureLetterL
     case gestureLetterO
     case gestureRockOn
+    case gestureLetterB
+    case gestureLetterU
+    case gestureFingersCrossed
     case handLeft
     case handRight
     case footerPrivacy
@@ -55,16 +58,26 @@ public enum LocalizedKey: String, Sendable {
     case expressionSurprised
     case expressionAngry
     case expressionBlink
+    case expressionLaugh
+    case expressionKiss
+    case expressionMouthOpen
+    case expressionBrowsRaised
+    case expressionWink
     case headNone
     case headNodYes
     case headShakeNo
     case headTilt
+    case headTurnLeft
+    case headTurnRight
+    case headLookUp
+    case headLookDown
     case faceIdNamePlaceholder
     case faceIdRegister
     case faceIdNoFaceDetected
     case faceIdSampleSaved
     case faceIdUnknown
     case faceIdRemove
+    case faceIdLowQuality
     case languageLabel
     case themeLabel
     case themeLight
@@ -107,15 +120,18 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gesturePointing: "A apontar ☝️",
         .gestureThumbsDown: "Não gostei 👎",
         .gestureThreeFingers: "Três dedos (W) 🤟",
-        .gestureShaka: "Shaka 🤙",
+        .gestureShaka: "Shaka / Letra Y 🤙",
         .gestureILoveYou: "Amo-te (LGP/ASL) 🤟",
         .gestureLetterA: "Letra A (LGP/ASL) ✊",
         .gestureLetterD: "Letra D (LGP/ASL) ☝️",
-        .gestureLetterF: "Letra F (LGP/ASL) 👌",
+        .gestureLetterF: "OK / Letra F 👌",
         .gestureLetterI: "Letra I (LGP/ASL) 🤙",
         .gestureLetterL: "Letra L (LGP/ASL) 👆",
         .gestureLetterO: "Letra O (LGP/ASL) 👌",
         .gestureRockOn: "Rock on 🤘",
+        .gestureLetterB: "Letra B / Quatro (LGP/ASL) 🖐️",
+        .gestureLetterU: "Letra U (LGP/ASL) 🤞",
+        .gestureFingersCrossed: "Dedos cruzados 🤞",
         .handLeft: "Mão esquerda",
         .handRight: "Mão direita",
         .footerPrivacy: "Privacidade em primeiro lugar: o vídeo nunca sai do dispositivo.",
@@ -125,17 +141,27 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .expressionSad: "Triste 😢",
         .expressionSurprised: "Surpreso(a) 😲",
         .expressionAngry: "Zangado(a) 😠",
-        .expressionBlink: "A piscar 😉",
+        .expressionBlink: "Olhos fechados 😌",
+        .expressionLaugh: "A rir 😄",
+        .expressionKiss: "Beijinho 😘",
+        .expressionMouthOpen: "Boca aberta 😮",
+        .expressionBrowsRaised: "Sobrancelhas levantadas 🤨",
+        .expressionWink: "A piscar o olho 😉",
         .headNone: "Sem movimento detetado",
         .headNodYes: "A acenar que sim 👍",
         .headShakeNo: "A acenar que não 👎",
         .headTilt: "Cabeça inclinada",
+        .headTurnLeft: "A olhar para a esquerda ⬅️",
+        .headTurnRight: "A olhar para a direita ➡️",
+        .headLookUp: "A olhar para cima ⬆️",
+        .headLookDown: "A olhar para baixo ⬇️",
         .faceIdNamePlaceholder: "Nome da pessoa",
         .faceIdRegister: "Registar rosto",
         .faceIdNoFaceDetected: "Nenhum rosto detetado.",
         .faceIdSampleSaved: "Amostra guardada",
         .faceIdUnknown: "Rosto não reconhecido",
         .faceIdRemove: "Remover",
+        .faceIdLowQuality: "Imagem pouco nítida. Olha de frente para a câmara, aproxima-te e tenta outra vez.",
         .languageLabel: "Idioma",
         .themeLabel: "Aspeto",
         .themeLight: "Claro",
@@ -168,15 +194,18 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .gesturePointing: "Pointing ☝️",
         .gestureThumbsDown: "Thumbs down 👎",
         .gestureThreeFingers: "Three fingers (W) 🤟",
-        .gestureShaka: "Shaka 🤙",
+        .gestureShaka: "Shaka / Letter Y 🤙",
         .gestureILoveYou: "I love you (ASL/LGP) 🤟",
         .gestureLetterA: "Letter A (ASL/LGP) ✊",
         .gestureLetterD: "Letter D (ASL/LGP) ☝️",
-        .gestureLetterF: "Letter F (ASL/LGP) 👌",
+        .gestureLetterF: "OK / Letter F 👌",
         .gestureLetterI: "Letter I (ASL/LGP) 🤙",
         .gestureLetterL: "Letter L (ASL/LGP) 👆",
         .gestureLetterO: "Letter O (ASL/LGP) 👌",
         .gestureRockOn: "Rock on 🤘",
+        .gestureLetterB: "Letter B / Four (ASL/LGP) 🖐️",
+        .gestureLetterU: "Letter U (ASL/LGP) 🤞",
+        .gestureFingersCrossed: "Fingers crossed 🤞",
         .handLeft: "Left hand",
         .handRight: "Right hand",
         .footerPrivacy: "Privacy first: video never leaves the device.",
@@ -186,17 +215,27 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .expressionSad: "Sad 😢",
         .expressionSurprised: "Surprised 😲",
         .expressionAngry: "Angry 😠",
-        .expressionBlink: "Blinking 😉",
+        .expressionBlink: "Eyes closed 😌",
+        .expressionLaugh: "Laughing 😄",
+        .expressionKiss: "Kiss 😘",
+        .expressionMouthOpen: "Mouth open 😮",
+        .expressionBrowsRaised: "Eyebrows raised 🤨",
+        .expressionWink: "Winking 😉",
         .headNone: "No movement detected",
         .headNodYes: "Nodding yes 👍",
         .headShakeNo: "Shaking no 👎",
         .headTilt: "Head tilted",
+        .headTurnLeft: "Looking left ⬅️",
+        .headTurnRight: "Looking right ➡️",
+        .headLookUp: "Looking up ⬆️",
+        .headLookDown: "Looking down ⬇️",
         .faceIdNamePlaceholder: "Person's name",
         .faceIdRegister: "Register face",
         .faceIdNoFaceDetected: "No face detected.",
         .faceIdSampleSaved: "Sample saved",
         .faceIdUnknown: "Face not recognized",
         .faceIdRemove: "Remove",
+        .faceIdLowQuality: "Image not clear enough. Face the camera, move closer and try again.",
         .languageLabel: "Language",
         .themeLabel: "Appearance",
         .themeLight: "Light",

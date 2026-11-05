@@ -7,19 +7,18 @@
 ## ✨ Features
 
 - ✅ Live hand gesture recognition for up to 2 hands at once, each labeled as your left/right hand — thumbs
-  up/down, open palm, closed fist, peace sign, pointing, three fingers (W), shaka, rock on, the ASL/LGP "I
-  love you" sign, and the fingerspelling letters A, D, F, I, L and O — via `VNDetectHumanHandPoseRequest`.
-  This is a curated set of static hand shapes, **not** full sign-language recognition and **not** the full
-  fingerspelling alphabet — real sign language (and most other letters, e.g. B, C, J, Z) needs a sequence
-  model trained on real examples, or a way to measure finger curvature/overlap this classifier doesn't
-  attempt
+  up/down, open palm, closed fist, peace sign, crossed fingers, pointing, three fingers (W), shaka, rock on,
+  the ASL/LGP "I love you" sign, OK, and the fingerspelling letters A, B, D, F, I, L, O and U — via
+  `VNDetectHumanHandPoseRequest`. Fingers count as folded only when clearly folded, so a relaxed, half-open
+  hand reads as "nothing" rather than a wrong letter. This is a curated set of static hand shapes, **not**
+  full sign-language recognition
 - ✅ Natural "mirror" camera preview on both platforms (iOS mirrors automatically; macOS cameras don't
   auto-mirror like a front-facing iPhone camera does, so it's mirrored explicitly to match)
-- ✅ Facial expression recognition — smile, sad, surprised, angry, blinking — via `VNDetectFaceLandmarksRequest` heuristics. Tongue-out is **not** detected: Vision's face landmarks don't track the tongue at all
+- ✅ Facial expression recognition — smile, laugh, sad, surprised, angry, kiss, mouth open, raised eyebrows, wink and eyes closed — from `VNDetectFaceLandmarksRequest` geometry, measured against each person's own neutral face. Tongue-out and puffed cheeks are **not** detected: Vision's landmarks don't track the tongue or the cheeks
 - ✅ Full head area shown as detected (forehead to chin), not just the eyes/nose/mouth mesh — Vision's landmark
   points never reach the forehead or hairline, so the whole head bounding box is drawn alongside the fine mesh
-- ✅ Head movement recognition — nodding yes, shaking no, head tilt — from Vision's roll/yaw/pitch
-- ✅ Approximate face identification — register a face and get recognized afterwards, using Vision's `VNGenerateImageFeaturePrintRequest` (no bundled third-party model; less precise than the web app's dedicated face-recognition net — see note below)
+- ✅ Head movement recognition — nodding yes, shaking no, head tilt, and looking left/right/up/down — from Vision's yaw/pitch/roll (face rectangles revision 3, which also reports pitch)
+- ✅ Approximate face identification — register a face and get recognized afterwards, using Vision's `VNGenerateImageFeaturePrintRequest` (no bundled third-party model; less precise than the web app's dedicated face-recognition net — see note below). A name is only shown when it wins several checks in a row and clearly beats any other registered person, and only frontal, upright faces are compared or registered
 - ✅ 100% on-device processing — no video or biometric data ever leaves the Mac or the iPhone
 - ✅ Shared `SharedKit` Swift package — the classifiers, the camera/Vision capture service and the whole UI live here once; each app target is just its `@main` entry point, icons and Info.plist
 - ✅ Animated hand-landmark and face-contour overlays drawn live over the camera preview
@@ -91,7 +90,7 @@ After building, verify the signed app with:
 python3 scripts/check-camera-entitlement.py /path/to/iFaceAIID-Mac.app
 ```
 
-`swift test` runs unit tests for the gesture and expression classifiers and the camera lifecycle (permission handling, start/stop races) in `SharedKit` — no camera or device needed.
+`swift test` runs unit tests for the gesture, expression, head and identity logic — including hand points Vision produced on MediaPipe's public test photos (`SharedKit/Tests/SharedKitTests/Fixtures`) — and the camera lifecycle (permission handling, start/stop races) in `SharedKit` — no camera or device needed.
 
 ## 📄 License
 

@@ -211,4 +211,50 @@ final class ExpressionBaselineTrackerTests: XCTestCase {
         )
         XCTAssertEqual(feed(tracker, differentRestingFace, 300), .none)
     }
+
+    // MARK: - Added expressions
+
+    private func settled() -> ExpressionBaselineTracker {
+        let tracker = ExpressionBaselineTracker()
+        _ = feed(tracker, base, 10)
+        return tracker
+    }
+
+    private let base = ExpressionScores(
+        mouthCornerLift: 0.001, mouthOpenAmount: 0.01, eyeOpenRatio: 0.3, browRaise: 0.05, mouthWidth: 1.0
+    )
+
+    private func held(_ scores: ExpressionScores) -> FacialExpression {
+        feed(settled(), scores, 12)
+    }
+
+    func testBigSmileThatLowersTheBrowsIsStillASmile() {
+        // A real smile squints and pulls the brows down; it used to read as angry.
+        XCTAssertEqual(held(ExpressionScores(mouthCornerLift: 0.03, mouthOpenAmount: 0.01, eyeOpenRatio: 0.25, browRaise: 0.0, mouthWidth: 1.1)), .smile)
+    }
+
+    func testSmileWithOpenMouthIsALaugh() {
+        XCTAssertEqual(held(ExpressionScores(mouthCornerLift: 0.03, mouthOpenAmount: 0.1, eyeOpenRatio: 0.3, browRaise: 0.05, mouthWidth: 1.1)), .laugh)
+    }
+
+    func testNarrowedLipsAreAKiss() {
+        XCTAssertEqual(held(ExpressionScores(mouthCornerLift: 0.001, mouthOpenAmount: 0.01, eyeOpenRatio: 0.3, browRaise: 0.05, mouthWidth: 0.8)), .kiss)
+    }
+
+    func testWideOpenMouthAndRaisedBrows() {
+        XCTAssertEqual(held(ExpressionScores(mouthCornerLift: 0.001, mouthOpenAmount: 0.15, eyeOpenRatio: 0.3, browRaise: 0.05, mouthWidth: 1.0)), .mouthOpen)
+        XCTAssertEqual(held(ExpressionScores(mouthCornerLift: 0.001, mouthOpenAmount: 0.01, eyeOpenRatio: 0.3, browRaise: 0.1, mouthWidth: 1.0)), .browsRaised)
+    }
+
+    func testOneClosedEyeIsAWink() {
+        let tracker = settled()
+        var result: FacialExpression = .none
+        for _ in 0..<3 {
+            result = tracker.classify(ExpressionScores(
+                mouthCornerLift: 0.001, mouthOpenAmount: 0.01, eyeOpenRatio: 0.15, browRaise: 0.05,
+                leftEyeOpenRatio: 0.0, rightEyeOpenRatio: 0.3, mouthWidth: 1.0
+            ))
+        }
+        XCTAssertEqual(result, .wink)
+    }
 }

@@ -21,7 +21,8 @@ public final class CaptureService: NSObject, ObservableObject {
     @Published public private(set) var videoSize: CGSize = .zero
     @Published public private(set) var headMovement: HeadMovement = .none
     @Published public private(set) var status: CaptureStatus = .idle
-    @Published public internal(set) var identityMatch: (name: String, distance: Float)?
+    /// The recognized person, only once they've won most recent checks.
+    @Published public internal(set) var identityName: String?
     @Published public internal(set) var registrationFeedback: String?
     @Published public private(set) var isStarting = false
     @Published public private(set) var failureMessage: LocalizedKey = .cameraError
@@ -40,7 +41,20 @@ public final class CaptureService: NSObject, ObservableObject {
     nonisolated(unsafe) public let session = AVCaptureSession()
     nonisolated(unsafe) private let output = AVCaptureVideoDataOutput()
     nonisolated(unsafe) private let handRequest = VNDetectHumanHandPoseRequest()
+    /// Run alongside the landmarks request so the face observation carries
+    /// continuous yaw *and pitch*: the landmarks request on its own reports
+    /// no pitch at all (so nodding could never be detected) and a yaw stuck
+    /// at 0 on MediaPipe's test portraits.
+    nonisolated(unsafe) private let faceRectanglesRequest: VNDetectFaceRectanglesRequest = {
+        let request = VNDetectFaceRectanglesRequest()
+        request.revision = VNDetectFaceRectanglesRequestRevision3
+        return request
+    }()
     nonisolated(unsafe) private let faceRequest = VNDetectFaceLandmarksRequest()
+    private var identityStabilizer = IdentityStabilizer()
+    /// Whether the latest face is seen clearly enough to register: frontal,
+    /// upright and not too far away.
+    nonisolated(unsafe) private var latestFaceIsRegistrable = false
     nonisolated(unsafe) private var gestureStabilizers: [HandGestureStabilizer] = []
     nonisolated(unsafe) private let tracker = HeadMovementTracker()
     nonisolated(unsafe) private let expressionTracker = ExpressionBaselineTracker()
@@ -106,12 +120,14 @@ public final class CaptureService: NSObject, ObservableObject {
         expression = .none
         expressionScores = nil
         headMovement = .none
-        identityMatch = nil
+        identityName = nil
         faceDetected = false
         currentFaceLandmarks = nil
         currentFaceBoundingBox = .zero
         registrationFeedback = nil
+        identityStabilizer.reset()
         queue.async { [self] in
+            latestFaceIsRegistrable = false
             activeGeneration = nil
             if session.isRunning { session.stopRunning() }
             tracker.reset()
@@ -137,7 +153,16 @@ public final class CaptureService: NSObject, ObservableObject {
                 }
                 return
             }
-            let observation = try? FaceIdentification.featurePrint(from: buffer, faceBoundingBox: box)
+            guard self.latestFaceIsRegistrable else {
+                Task { @MainActor in
+                    guard self.generation == token else { return }
+                    self.registrationFeedback = LocalizationManager.shared.string(.faceIdLowQuality)
+                }
+                return
+            }
+            let observation = try? FaceIdentification.featurePrint(
+                from: buffer, faceBoundingBox: box, orientation: Self.frameOrientation
+            )
             Task { @MainActor in
                 guard self.generation == token else { return }
                 guard let observation else {
@@ -224,6 +249,18 @@ public final class CaptureService: NSObject, ObservableObject {
     /// sensor's native landscape orientation; `.leftMirrored` makes Vision
     /// see an upright, mirrored frame (a 90°-rotated face badly hurts
     /// detection). A Mac camera delivers frames upright and un-mirrored.
+    /// Vision's yaw is positive when the nose moves toward the image's
+    /// right (measured on MediaPipe's portrait and its mirror image). In
+    /// the Mac's un-mirrored frame that's the person turning to their own
+    /// left; the iPhone's frame is mirrored, so the sign flips there.
+    nonisolated private static let yawTowardOwnLeft: Double = {
+        #if os(iOS)
+        -1
+        #else
+        1
+        #endif
+    }()
+
     nonisolated private static let frameOrientation: CGImagePropertyOrientation = {
         #if os(iOS)
         .leftMirrored
@@ -258,7 +295,7 @@ extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
         let videoSize = Self.orientedSize(of: pixelBuffer)
 
         do {
-            try handler.perform([handRequest, faceRequest])
+            try handler.perform([handRequest, faceRectanglesRequest, faceRequest])
 
             let observations = handRequest.results ?? []
             if gestureStabilizers.count > observations.count {
@@ -266,7 +303,8 @@ extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             let detectedHands: [DetectedHand] = observations.enumerated().map { index, observation in
                 let landmarks = VisionHandMapping.landmarks(from: observation)
-                let rawGesture = HandGestureClassifier.classify(landmarks)
+                let aspect = videoSize.height > 0 ? videoSize.width / videoSize.height : 1
+                let rawGesture = HandGestureClassifier.classify(landmarks.aspectCorrected(aspect))
                 if index >= gestureStabilizers.count { gestureStabilizers.append(HandGestureStabilizer()) }
                 let gesture = gestureStabilizers[index].push(rawGesture)
                 let handedness = VisionHandMapping.handedness(from: observation)
@@ -278,14 +316,16 @@ extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 expressionTracker.reset()
                 latestPixelBuffer = nil
                 latestFaceBoundingBox = nil
+                latestFaceIsRegistrable = false
                 Task { @MainActor in
+                    self.identityStabilizer.reset()
                     guard self.generation == token, self.status == .running else { return }
                     self.hands = detectedHands
                     self.videoSize = videoSize
                     self.expression = .none
                     self.expressionScores = nil
                     self.headMovement = .none
-                    self.identityMatch = nil
+                    self.identityName = nil
                     self.faceDetected = false
                     self.currentFaceLandmarks = nil
                 }
@@ -294,19 +334,24 @@ extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
 
             let scores = FacialExpressionClassifier.scores(landmarks2D)
             let expression = scores.map { expressionTracker.classify($0) } ?? .none
-            let movement = tracker.push(
-                pitch: face.pitch?.doubleValue ?? 0,
-                yaw: face.yaw?.doubleValue ?? 0,
-                roll: face.roll?.doubleValue ?? 0
-            )
+            let yaw = (face.yaw?.doubleValue ?? 0) * Self.yawTowardOwnLeft
+            let pitch = face.pitch?.doubleValue ?? 0
+            let roll = face.roll?.doubleValue ?? 0
+            let movement = tracker.push(pitch: pitch, yaw: yaw, roll: roll)
 
             latestPixelBuffer = pixelBuffer
             latestFaceBoundingBox = face.boundingBox
+            // A turned or tilted face gives an unreliable feature print (a
+            // 90°-rotated portrait scored 0.71-0.94 against the same person).
+            let faceIsClear = abs(yaw) < 0.35 && abs(roll) < 0.3
+            latestFaceIsRegistrable = faceIsClear && face.boundingBox.width >= 0.1
 
             frameCounter += 1
-            let shouldCheckIdentity = frameCounter % Self.identityFrameInterval == 0
+            let shouldCheckIdentity = faceIsClear && frameCounter % Self.identityFrameInterval == 0
             let identityObservation = shouldCheckIdentity
-                ? try? FaceIdentification.featurePrint(from: pixelBuffer, faceBoundingBox: face.boundingBox)
+                ? try? FaceIdentification.featurePrint(
+                    from: pixelBuffer, faceBoundingBox: face.boundingBox, orientation: Self.frameOrientation
+                )
                 : nil
 
             Task { @MainActor in
@@ -320,7 +365,8 @@ extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
                 self.currentFaceLandmarks = landmarks2D
                 self.currentFaceBoundingBox = face.boundingBox
                 if shouldCheckIdentity {
-                    self.identityMatch = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }
+                    let name = identityObservation.flatMap { FaceIdentityStore.shared.match($0) }?.name
+                    self.identityName = self.identityStabilizer.push(name)
                 }
             }
         } catch {
