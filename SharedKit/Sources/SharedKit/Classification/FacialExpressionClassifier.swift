@@ -9,6 +9,30 @@ public struct ExpressionScores: Sendable {
     public let mouthOpenAmount: CGFloat
     public let eyeOpenRatio: CGFloat
     public let browRaise: CGFloat
+    /// Per eye, so one closed eye (a wink) can be told from both (a blink).
+    public let leftEyeOpenRatio: CGFloat
+    public let rightEyeOpenRatio: CGFloat
+    /// Mouth width relative to the distance between the eyes: shrinks
+    /// when the lips pucker for a kiss.
+    public let mouthWidth: CGFloat
+
+    public init(
+        mouthCornerLift: CGFloat,
+        mouthOpenAmount: CGFloat,
+        eyeOpenRatio: CGFloat,
+        browRaise: CGFloat,
+        leftEyeOpenRatio: CGFloat? = nil,
+        rightEyeOpenRatio: CGFloat? = nil,
+        mouthWidth: CGFloat = 0
+    ) {
+        self.mouthCornerLift = mouthCornerLift
+        self.mouthOpenAmount = mouthOpenAmount
+        self.eyeOpenRatio = eyeOpenRatio
+        self.browRaise = browRaise
+        self.leftEyeOpenRatio = leftEyeOpenRatio ?? eyeOpenRatio
+        self.rightEyeOpenRatio = rightEyeOpenRatio ?? eyeOpenRatio
+        self.mouthWidth = mouthWidth
+    }
 }
 
 /// Classifies a Vision `VNFaceLandmarks2D` snapshot into one of the Phase-2
@@ -25,9 +49,15 @@ public enum FacialExpressionClassifier {
 
         let innerLipsHeight = (landmarks.innerLips?.normalizedPoints).map(height) ?? 0
 
-        let eyeHeight = (height(leftEye) + height(rightEye)) / 2
-        let eyeWidth = (width(leftEye) + width(rightEye)) / 2
-        let eyeOpenRatio = eyeWidth > 0 ? eyeHeight / eyeWidth : 1
+        func openRatio(_ eye: [CGPoint]) -> CGFloat {
+            let eyeWidth = width(eye)
+            return eyeWidth > 0 ? height(eye) / eyeWidth : 1
+        }
+        let leftEyeOpenRatio = openRatio(leftEye)
+        let rightEyeOpenRatio = openRatio(rightEye)
+        let eyeOpenRatio = (leftEyeOpenRatio + rightEyeOpenRatio) / 2
+        let eyeDistance = abs(averageX(rightEye) - averageX(leftEye))
+        let mouthWidth = eyeDistance > 0 ? width(outerLips) / eyeDistance : 0
 
         let browEyeGapLeft = averageY(leftEyebrow) - averageY(leftEye)
         let browEyeGapRight = averageY(rightEyebrow) - averageY(rightEye)
@@ -39,7 +69,10 @@ public enum FacialExpressionClassifier {
             mouthCornerLift: mouthCornerLift,
             mouthOpenAmount: innerLipsHeight,
             eyeOpenRatio: eyeOpenRatio,
-            browRaise: browRaise
+            browRaise: browRaise,
+            leftEyeOpenRatio: leftEyeOpenRatio,
+            rightEyeOpenRatio: rightEyeOpenRatio,
+            mouthWidth: mouthWidth
         )
     }
 
@@ -82,6 +115,10 @@ public enum FacialExpressionClassifier {
     private static func width(_ points: [CGPoint]) -> CGFloat {
         guard let minX = points.map(\.x).min(), let maxX = points.map(\.x).max() else { return 0 }
         return maxX - minX
+    }
+
+    private static func averageX(_ points: [CGPoint]) -> CGFloat {
+        points.map(\.x).reduce(0, +) / CGFloat(max(points.count, 1))
     }
 
     private static func averageY(_ points: [CGPoint]) -> CGFloat {

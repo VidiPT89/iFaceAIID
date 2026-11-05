@@ -18,6 +18,9 @@ extension DetectedGesture {
         case .letterL: return .gestureLetterL
         case .letterO: return .gestureLetterO
         case .rockOn: return .gestureRockOn
+        case .letterB: return .gestureLetterB
+        case .letterU: return .gestureLetterU
+        case .fingersCrossed: return .gestureFingersCrossed
         case .none: return .gestureNone
         }
     }
@@ -52,6 +55,11 @@ extension FacialExpression {
         case .surprised: return .expressionSurprised
         case .angry: return .expressionAngry
         case .blink: return .expressionBlink
+        case .laugh: return .expressionLaugh
+        case .kiss: return .expressionKiss
+        case .mouthOpen: return .expressionMouthOpen
+        case .browsRaised: return .expressionBrowsRaised
+        case .wink: return .expressionWink
         case .none: return .expressionNone
         }
     }
@@ -63,6 +71,10 @@ extension HeadMovement {
         case .nodYes: return .headNodYes
         case .shakeNo: return .headShakeNo
         case .tilt: return .headTilt
+        case .turnLeft: return .headTurnLeft
+        case .turnRight: return .headTurnRight
+        case .lookUp: return .headLookUp
+        case .lookDown: return .headLookDown
         case .none: return .headNone
         }
     }

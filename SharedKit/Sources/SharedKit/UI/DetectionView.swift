@@ -206,8 +206,8 @@ struct DetectionView: View {
                 }
                 .animation(.spring(response: 0.35, dampingFraction: 0.7), value: capture.hands.map(\.gesture))
                 if capture.faceDetected {
-                    if let match = capture.identityMatch {
-                        badge(match.name)
+                    if let name = capture.identityName {
+                        badge(name)
                     } else {
                         badge(localization.string(.faceIdUnknown), muted: true)
                     }

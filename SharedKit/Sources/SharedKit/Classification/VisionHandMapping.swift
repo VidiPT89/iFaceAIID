@@ -14,6 +14,21 @@ public enum VisionHandMapping {
     ]
 
     public static func landmarks(from observation: VNHumanHandPoseObservation) -> HandLandmarks {
+        var recognized: [VNHumanHandPoseObservation.JointName: (location: CGPoint, confidence: Float)] = [:]
+        for (_, visionJoint) in jointMapping {
+            if let point = try? observation.recognizedPoint(visionJoint) {
+                recognized[visionJoint] = (point.location, point.confidence)
+            }
+        }
+        return landmarks(from: recognized)
+    }
+
+    /// The mapping itself, separate from `VNHumanHandPoseObservation` (which
+    /// can't be constructed outside Vision) so recorded points can be
+    /// replayed in tests.
+    static func landmarks(
+        from recognized: [VNHumanHandPoseObservation.JointName: (location: CGPoint, confidence: Float)]
+    ) -> HandLandmarks {
         var points: [HandLandmarks.Joint: HandPoint] = [:]
         for (joint, visionJoint) in jointMapping {
             // 0.2 rather than Vision's own higher internal bar: a slightly
@@ -21,7 +36,7 @@ public enum VisionHandMapping {
             // drop out of the gesture classifier at typical webcam distance
             // and lighting, at the cost of very occasionally keeping a noisy
             // point — an acceptable trade for gesture classification.
-            if let point = try? observation.recognizedPoint(visionJoint), point.confidence > 0.2 {
+            if let point = recognized[visionJoint], point.confidence > 0.2 {
                 points[joint] = HandPoint(x: point.location.x, y: point.location.y, confidence: CGFloat(point.confidence))
             }
         }

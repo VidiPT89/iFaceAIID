@@ -35,6 +35,14 @@ public struct HandLandmarks: Sendable {
 
     public func point(_ joint: Joint) -> HandPoint? { points[joint] }
 
+    /// Vision normalizes x by the frame's width and y by its height, so on a
+    /// 4:3 or 16:9 frame horizontal distances read shorter than vertical
+    /// ones. Scaling x by the aspect ratio restores true proportions for
+    /// the classifier (overlays keep using the normalized points).
+    public func aspectCorrected(_ aspectRatio: CGFloat) -> HandLandmarks {
+        HandLandmarks(points: points.mapValues { HandPoint(x: $0.x * aspectRatio, y: $0.y, confidence: $0.confidence) })
+    }
+
     /// All currently-tracked joint locations, for drawing every detected
     /// point rather than only the ones a specific gesture cares about.
     public var allLocations: [CGPoint] { points.values.map(\.location) }

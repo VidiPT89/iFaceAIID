@@ -49,10 +49,10 @@ final class CameraLifecycleTests: XCTestCase {
     func testStopClearsResultsAndFeedback() {
         let capture = CaptureService(authorizationStatus: { .denied }, requestAccess: { _ in })
         capture.registrationFeedback = "Saved"
-        capture.identityMatch = ("Test", 1)
+        capture.identityName = "Test"
         capture.stop()
         XCTAssertNil(capture.registrationFeedback)
-        XCTAssertNil(capture.identityMatch)
+        XCTAssertNil(capture.identityName)
         XCTAssertTrue(capture.hands.isEmpty)
         XCTAssertFalse(capture.faceDetected)
     }

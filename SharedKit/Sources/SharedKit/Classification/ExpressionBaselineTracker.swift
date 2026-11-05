@@ -78,38 +78,63 @@ public final class ExpressionBaselineTracker {
             return .none
         }
 
+        func smooth(_ key: KeyPath<ExpressionScores, CGFloat>) -> CGFloat {
+            previousSmoothed[keyPath: key] + (scores[keyPath: key] - previousSmoothed[keyPath: key]) * smoothRate
+        }
         let s = ExpressionScores(
-            mouthCornerLift: previousSmoothed.mouthCornerLift + (scores.mouthCornerLift - previousSmoothed.mouthCornerLift) * smoothRate,
-            mouthOpenAmount: previousSmoothed.mouthOpenAmount + (scores.mouthOpenAmount - previousSmoothed.mouthOpenAmount) * smoothRate,
-            eyeOpenRatio: previousSmoothed.eyeOpenRatio + (scores.eyeOpenRatio - previousSmoothed.eyeOpenRatio) * smoothRate,
-            browRaise: previousSmoothed.browRaise + (scores.browRaise - previousSmoothed.browRaise) * smoothRate
+            mouthCornerLift: smooth(\.mouthCornerLift),
+            mouthOpenAmount: smooth(\.mouthOpenAmount),
+            eyeOpenRatio: smooth(\.eyeOpenRatio),
+            browRaise: smooth(\.browRaise),
+            leftEyeOpenRatio: smooth(\.leftEyeOpenRatio),
+            rightEyeOpenRatio: smooth(\.rightEyeOpenRatio),
+            mouthWidth: smooth(\.mouthWidth)
         )
         smoothed = s
 
         let liftDelta = s.mouthCornerLift - base.mouthCornerLift
         let openDelta = s.mouthOpenAmount - base.mouthOpenAmount
         let eyeDelta = s.eyeOpenRatio - base.eyeOpenRatio
+        let leftEyeDelta = s.leftEyeOpenRatio - base.leftEyeOpenRatio
+        let rightEyeDelta = s.rightEyeOpenRatio - base.rightEyeOpenRatio
         let browDelta = s.browRaise - base.browRaise
+        let widthChange = base.mouthWidth > 0 ? (s.mouthWidth - base.mouthWidth) / base.mouthWidth : 0
 
         let mouthOpen = openDelta > 0.045
+        let mouthWideOpen = openDelta > 0.09
         let eyesClosed = eyeDelta < -0.12
+        // One eye clearly closed while the other stays open.
+        let leftClosed = leftEyeDelta < -0.12, rightClosed = rightEyeDelta < -0.12
+        let wink = leftClosed != rightClosed && (leftClosed ? rightEyeDelta : leftEyeDelta) > -0.04
         let browRaised = browDelta > 0.035
         let browLowered = browDelta < -0.03
 
+        let smiling = liftDelta > 0.006
         let surprised = browRaised && mouthOpen
-        let angry = browLowered && !mouthOpen && !browRaised
+        // A real smile squints the eyes and pulls the brows down; without
+        // excluding it, a big smile read as angry.
+        let angry = browLowered && !mouthOpen && !browRaised && !smiling
         let sad = liftDelta < -0.006 && !browRaised
-        let smile = liftDelta > 0.006 && !mouthOpen
+        // Puckered lips narrow the mouth noticeably without opening it.
+        let kiss = widthChange < -0.12 && !mouthOpen && !smiling
 
         let expression: FacialExpression
         if surprised {
             expression = .surprised
+        } else if smiling {
+            expression = mouthOpen ? .laugh : .smile
+        } else if kiss {
+            expression = .kiss
         } else if angry {
             expression = .angry
         } else if sad {
             expression = .sad
-        } else if smile {
-            expression = .smile
+        } else if mouthWideOpen {
+            expression = .mouthOpen
+        } else if browRaised {
+            expression = .browsRaised
+        } else if wink {
+            expression = .wink
         } else if eyesClosed {
             expression = .blink
         } else {
@@ -137,7 +162,7 @@ public final class ExpressionBaselineTracker {
         // matter how deliberately/slowly someone blinked. It bypasses the
         // vote and displays immediately off the smoothed per-frame signal
         // instead, same as any other instantaneous (rather than held) cue.
-        let displayed = expression == .blink ? .blink : (winner ?? .none)
+        let displayed = expression == .blink || expression == .wink ? expression : (winner ?? .none)
 
         // Freeze the baseline on the *displayed* (post-vote) result, not the
         // raw instant one: an earlier version froze on the raw per-frame
@@ -149,11 +174,17 @@ public final class ExpressionBaselineTracker {
         // slower) even while non-none, so a permanent trait doesn't get
         // stuck reporting a false expression forever — see slowAdaptRate.
         let rate = displayed == .none ? adaptRate : slowAdaptRate
+        func adapt(_ key: KeyPath<ExpressionScores, CGFloat>) -> CGFloat {
+            base[keyPath: key] + (s[keyPath: key] - base[keyPath: key]) * rate
+        }
         baseline = ExpressionScores(
-            mouthCornerLift: base.mouthCornerLift + liftDelta * rate,
-            mouthOpenAmount: base.mouthOpenAmount + openDelta * rate,
-            eyeOpenRatio: base.eyeOpenRatio + eyeDelta * rate,
-            browRaise: base.browRaise + browDelta * rate
+            mouthCornerLift: adapt(\.mouthCornerLift),
+            mouthOpenAmount: adapt(\.mouthOpenAmount),
+            eyeOpenRatio: adapt(\.eyeOpenRatio),
+            browRaise: adapt(\.browRaise),
+            leftEyeOpenRatio: adapt(\.leftEyeOpenRatio),
+            rightEyeOpenRatio: adapt(\.rightEyeOpenRatio),
+            mouthWidth: adapt(\.mouthWidth)
         )
 
         return displayed
