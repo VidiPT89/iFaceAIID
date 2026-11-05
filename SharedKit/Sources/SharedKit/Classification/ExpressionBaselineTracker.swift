@@ -70,7 +70,7 @@ public final class ExpressionBaselineTracker {
     }
 
     public func classify(_ scores: ExpressionScores) -> FacialExpression {
-        guard let previousSmoothed = smoothed else {
+        guard let previousSmoothed = smoothed, let base = baseline else {
             // First frame after (re)starting: nothing to compare against
             // yet, so seed both trackers directly rather than guessing.
             smoothed = scores
@@ -85,11 +85,6 @@ public final class ExpressionBaselineTracker {
             browRaise: previousSmoothed.browRaise + (scores.browRaise - previousSmoothed.browRaise) * smoothRate
         )
         smoothed = s
-
-        guard let base = baseline else {
-            baseline = s
-            return .none
-        }
 
         let liftDelta = s.mouthCornerLift - base.mouthCornerLift
         let openDelta = s.mouthOpenAmount - base.mouthOpenAmount

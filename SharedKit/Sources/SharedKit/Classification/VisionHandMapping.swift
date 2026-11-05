@@ -2,8 +2,7 @@ import CoreGraphics
 import Vision
 
 /// Maps a Vision hand-pose observation to the platform-agnostic `HandLandmarks`
-/// model, shared by the macOS and iOS capture services so the mapping table
-/// (and the confidence threshold) only exists once.
+/// model.
 public enum VisionHandMapping {
     private static let jointMapping: [(HandLandmarks.Joint, VNHumanHandPoseObservation.JointName)] = [
         (.wrist, .wrist),
@@ -30,8 +29,8 @@ public enum VisionHandMapping {
     }
 
     /// Vision's `chirality` is computed relative to the image as described
-    /// by the `orientation` passed to `VNImageRequestHandler` — since both
-    /// capture services pass an orientation that already accounts for their
+    /// by the `orientation` passed to `VNImageRequestHandler` — since
+    /// `CaptureService` passes an orientation that already accounts for each
     /// platform's front-camera mirroring convention (`.leftMirrored` on a
     /// portrait-locked iPhone; a plain, un-mirrored `.up` on a Mac whose
     /// camera doesn't physically mirror), this maps directly with no swap.

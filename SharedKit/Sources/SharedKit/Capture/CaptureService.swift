@@ -1,44 +1,47 @@
 @preconcurrency import AVFoundation
 @preconcurrency import Vision
-import SharedKit
 import Combine
 
-/// Runs hand and face detection off a single shared camera session instead
-/// of two separate `AVCaptureSession`s (one per mode). Two independent
-/// sessions meant the camera had to stop and restart when switching between
-/// the Hands and Face tabs, and neither mode could show the other's results
-/// at the same time even though both are just different Vision requests
-/// over the same frame.
+/// Runs hand and face detection off one shared camera session — both are
+/// independent Vision requests over the same frame, so a single session
+/// shows every result at once.
+///
+/// Shared by the iOS and macOS apps: the two used to keep separate copies,
+/// and the iOS copy silently missed every lifecycle fix made on macOS (it
+/// re-added the camera input on each start, so stopping and starting again
+/// failed). Only camera selection and frame orientation differ per platform.
 @MainActor
-final class UnifiedCaptureService: NSObject, ObservableObject {
-    @Published var hands: [DetectedHand] = []
-    @Published var expression: FacialExpression = .none
-    @Published private(set) var expressionScores: ExpressionScores?
-    @Published private(set) var faceDetected = false
-    @Published var currentFaceLandmarks: VNFaceLandmarks2D?
-    @Published private(set) var currentFaceBoundingBox: CGRect = .zero
-    @Published private(set) var videoSize: CGSize = .zero
-    @Published var headMovement: HeadMovement = .none
-    @Published private(set) var status: CaptureStatus = .idle
-    @Published var identityMatch: (name: String, distance: Float)?
-    @Published var registrationFeedback: String?
-    @Published private(set) var isStarting = false
-    @Published private(set) var failureMessage: LocalizedKey = .cameraError
+public final class CaptureService: NSObject, ObservableObject {
+    @Published public private(set) var hands: [DetectedHand] = []
+    @Published public private(set) var expression: FacialExpression = .none
+    @Published public private(set) var expressionScores: ExpressionScores?
+    @Published public private(set) var faceDetected = false
+    @Published public private(set) var currentFaceLandmarks: VNFaceLandmarks2D?
+    @Published public private(set) var currentFaceBoundingBox: CGRect = .zero
+    @Published public private(set) var videoSize: CGSize = .zero
+    @Published public private(set) var headMovement: HeadMovement = .none
+    @Published public private(set) var status: CaptureStatus = .idle
+    @Published public internal(set) var identityMatch: (name: String, distance: Float)?
+    @Published public internal(set) var registrationFeedback: String?
+    @Published public private(set) var isStarting = false
+    @Published public private(set) var failureMessage: LocalizedKey = .cameraError
+
     private let authorizationStatus: () -> AVAuthorizationStatus
     private let requestAccess: (@escaping @Sendable (Bool) -> Void) -> Void
+    /// A fresh token per start/stop, so late permission callbacks and queued
+    /// frames from an earlier run can't overwrite the current state.
     private var generation = UUID()
+
+    // Everything below is only touched on `queue`, a dedicated serial
+    // queue — never concurrently, just not provably so to the compiler
+    // across the MainActor boundary.
     nonisolated(unsafe) private var activeGeneration: UUID?
     nonisolated(unsafe) private var isConfigured = false
-
-    // Configuration and delegate callbacks for these run entirely on `queue`,
-    // a dedicated serial queue — never touched concurrently, just not
-    // provably so to the compiler across the MainActor boundary.
-    nonisolated(unsafe) let session = AVCaptureSession()
+    nonisolated(unsafe) public let session = AVCaptureSession()
     nonisolated(unsafe) private let output = AVCaptureVideoDataOutput()
     nonisolated(unsafe) private let handRequest = VNDetectHumanHandPoseRequest()
     nonisolated(unsafe) private let faceRequest = VNDetectFaceLandmarksRequest()
     nonisolated(unsafe) private var gestureStabilizers: [HandGestureStabilizer] = []
-    private let queue = DispatchQueue(label: "faceaiid.capture.queue")
     nonisolated(unsafe) private let tracker = HeadMovementTracker()
     nonisolated(unsafe) private let expressionTracker = ExpressionBaselineTracker()
     nonisolated(unsafe) private var latestPixelBuffer: CVPixelBuffer?
@@ -48,8 +51,9 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
     /// only runs every Nth frame.
     nonisolated(unsafe) private var frameCounter = 0
     nonisolated private static let identityFrameInterval = 10
+    private let queue = DispatchQueue(label: "faceaiid.capture.queue")
 
-    override convenience init() {
+    public override convenience init() {
         self.init(
             authorizationStatus: { AVCaptureDevice.authorizationStatus(for: .video) },
             requestAccess: { AVCaptureDevice.requestAccess(for: .video, completionHandler: $0) }
@@ -66,7 +70,7 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
         handRequest.maximumHandCount = 2
     }
 
-    func start() {
+    public func start() {
         guard !isStarting, status != .running else { return }
         generation = UUID()
         let token = generation
@@ -94,8 +98,8 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
         }
     }
 
-    func stop() {
-        generation = UUID() // Ignore permission responses and queued frames from the old run.
+    public func stop() {
+        generation = UUID()
         isStarting = false
         status = .idle
         hands = []
@@ -119,7 +123,7 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
         }
     }
 
-    func registerCurrentFace(name: String) {
+    public func registerCurrentFace(name: String) {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, status == .running, faceDetected else { return }
         let token = generation
@@ -153,23 +157,23 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
             if !self.isConfigured {
                 self.session.beginConfiguration()
                 self.session.sessionPreset = .high
-                guard let device = AVCaptureDevice.default(for: .video) else {
+                guard let device = Self.captureDevice() else {
                     self.session.commitConfiguration()
-                    self.reportFailure(.cameraUnavailable, token: token)
+                    self.reportFailure(.cameraUnavailable, token: token, reason: "no video capture device")
                     return
                 }
                 do {
                     let input = try AVCaptureDeviceInput(device: device)
                     guard self.session.canAddInput(input) else {
                         self.session.commitConfiguration()
-                        self.reportFailure(.cameraError, token: token)
+                        self.reportFailure(.cameraError, token: token, reason: "cannot add input for \(device.localizedName)")
                         return
                     }
                     self.session.addInput(input)
                     guard self.session.canAddOutput(self.output) else {
                         self.session.removeInput(input)
                         self.session.commitConfiguration()
-                        self.reportFailure(.cameraError, token: token)
+                        self.reportFailure(.cameraError, token: token, reason: "cannot add video output")
                         return
                     }
                     self.output.alwaysDiscardsLateVideoFrames = true
@@ -179,13 +183,14 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
                     self.isConfigured = true
                 } catch {
                     self.session.commitConfiguration()
-                    self.reportFailure(.cameraError, token: token)
+                    self.reportFailure(.cameraError, token: token, reason: "\(error)")
                     return
                 }
             }
             self.activeGeneration = token
             if !self.session.isRunning { self.session.startRunning() }
             let running = self.session.isRunning
+            if !running { print("[FaceAIID] capture session did not start running") }
             Task { @MainActor in
                 guard self.generation == token else { return }
                 self.isStarting = false
@@ -195,7 +200,8 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
         }
     }
 
-    nonisolated private func reportFailure(_ message: LocalizedKey, token: UUID) {
+    nonisolated private func reportFailure(_ message: LocalizedKey, token: UUID, reason: String) {
+        print("[FaceAIID] could not open the camera: \(reason)")
         Task { @MainActor in
             guard self.generation == token else { return }
             self.failureMessage = message
@@ -204,25 +210,54 @@ final class UnifiedCaptureService: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Platform differences
+
+    nonisolated private static func captureDevice() -> AVCaptureDevice? {
+        #if os(iOS)
+        AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
+        #else
+        AVCaptureDevice.default(for: .video)
+        #endif
+    }
+
+    /// Front camera buffers on a portrait-locked iPhone arrive in the
+    /// sensor's native landscape orientation; `.leftMirrored` makes Vision
+    /// see an upright, mirrored frame (a 90°-rotated face badly hurts
+    /// detection). A Mac camera delivers frames upright and un-mirrored.
+    nonisolated private static let frameOrientation: CGImagePropertyOrientation = {
+        #if os(iOS)
+        .leftMirrored
+        #else
+        .up
+        #endif
+    }()
+
+    /// Vision reports landmarks relative to the image *after* applying the
+    /// orientation above — rotated 90° on iOS — so the size used to map them
+    /// back onto the preview must be swapped relative to the raw buffer there.
+    nonisolated private static func orientedSize(of pixelBuffer: CVPixelBuffer) -> CGSize {
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        #if os(iOS)
+        return CGSize(width: height, height: width)
+        #else
+        return CGSize(width: width, height: height)
+        #endif
+    }
 }
 
-extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
-    nonisolated func captureOutput(
+extension CaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
+    nonisolated public func captureOutput(
         _ output: AVCaptureOutput,
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
         guard let token = activeGeneration,
               let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        let videoSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
+        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: Self.frameOrientation, options: [:])
+        let videoSize = Self.orientedSize(of: pixelBuffer)
 
         do {
-            // Both requests run against the same frame/handler — this is
-            // the whole point of unifying the two capture services: hands
-            // and face were always independent Vision requests, they just
-            // used to run on two separate camera sessions that couldn't be
-            // active at the same time.
             try handler.perform([handRequest, faceRequest])
 
             let observations = handRequest.results ?? []
@@ -259,10 +294,11 @@ extension UnifiedCaptureService: AVCaptureVideoDataOutputSampleBufferDelegate {
 
             let scores = FacialExpressionClassifier.scores(landmarks2D)
             let expression = scores.map { expressionTracker.classify($0) } ?? .none
-            let pitch = face.pitch?.doubleValue ?? 0
-            let yaw = face.yaw?.doubleValue ?? 0
-            let roll = face.roll?.doubleValue ?? 0
-            let movement = tracker.push(pitch: pitch, yaw: yaw, roll: roll)
+            let movement = tracker.push(
+                pitch: face.pitch?.doubleValue ?? 0,
+                yaw: face.yaw?.doubleValue ?? 0,
+                roll: face.roll?.doubleValue ?? 0
+            )
 
             latestPixelBuffer = pixelBuffer
             latestFaceBoundingBox = face.boundingBox
