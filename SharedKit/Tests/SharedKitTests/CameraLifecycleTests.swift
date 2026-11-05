@@ -1,11 +1,11 @@
 import XCTest
 import AVFoundation
-@testable import MacCapture
+@testable import SharedKit
 
 final class CameraLifecycleTests: XCTestCase {
     @MainActor
     func testDeniedPermissionDoesNotRequestAgain() {
-        let capture = UnifiedCaptureService(authorizationStatus: { .denied }, requestAccess: { _ in
+        let capture = CaptureService(authorizationStatus: { .denied }, requestAccess: { _ in
             XCTFail("Denied access must be resolved in Settings")
         })
         capture.start()
@@ -16,7 +16,7 @@ final class CameraLifecycleTests: XCTestCase {
     @MainActor
     func testRepeatedStartOnlyRequestsPermissionOnce() {
         var requests = 0
-        let capture = UnifiedCaptureService(authorizationStatus: { .notDetermined }, requestAccess: { _ in requests += 1 })
+        let capture = CaptureService(authorizationStatus: { .notDetermined }, requestAccess: { _ in requests += 1 })
         capture.start()
         capture.start()
         XCTAssertEqual(requests, 1)
@@ -29,7 +29,7 @@ final class CameraLifecycleTests: XCTestCase {
     @MainActor
     func testLatePermissionResponseDoesNotOverwriteNewStart() async {
         var completions: [@Sendable (Bool) -> Void] = []
-        let capture = UnifiedCaptureService(authorizationStatus: { .notDetermined }, requestAccess: { completions.append($0) })
+        let capture = CaptureService(authorizationStatus: { .notDetermined }, requestAccess: { completions.append($0) })
         capture.start()
         capture.stop()
         capture.start()
@@ -47,7 +47,7 @@ final class CameraLifecycleTests: XCTestCase {
 
     @MainActor
     func testStopClearsResultsAndFeedback() {
-        let capture = UnifiedCaptureService(authorizationStatus: { .denied }, requestAccess: { _ in })
+        let capture = CaptureService(authorizationStatus: { .denied }, requestAccess: { _ in })
         capture.registrationFeedback = "Saved"
         capture.identityMatch = ("Test", 1)
         capture.stop()

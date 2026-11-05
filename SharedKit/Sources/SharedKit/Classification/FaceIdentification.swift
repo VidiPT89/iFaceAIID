@@ -60,7 +60,12 @@ public final class FaceIdentityStore: ObservableObject {
     /// data unboundedly; the oldest sample is dropped once the cap is hit.
     private static let maxSamplesPerPerson = 5
 
-    @Published public private(set) var allPrints: [KnownFacePrint] = []
+    @Published public private(set) var allPrints: [KnownFacePrint] = [] {
+        didSet { decodedPrints = Self.decode(allPrints) }
+    }
+    /// `allPrints` unarchived once per change instead of on every identity
+    /// check (which runs several times per second while the camera is on).
+    private var decodedPrints: [(name: String, observation: VNFeaturePrintObservation)] = []
     /// One row per distinct registered person, for UI lists — collapses the
     /// (possibly several) samples behind each name into one entry.
     public var knownFaces: [String] {
@@ -70,6 +75,8 @@ public final class FaceIdentityStore: ObservableObject {
 
     private init() {
         load()
+        // Property observers don't fire reliably for sets made during init.
+        decodedPrints = Self.decode(allPrints)
     }
 
     public func register(name: String, observation: VNFeaturePrintObservation) {
@@ -97,17 +104,23 @@ public final class FaceIdentityStore: ObservableObject {
 
     public func match(_ observation: VNFeaturePrintObservation) -> (name: String, distance: Float)? {
         var best: (name: String, distance: Float)?
-        for known in allPrints {
-            guard let storedObservation = try? NSKeyedUnarchiver.unarchivedObject(
-                ofClass: VNFeaturePrintObservation.self, from: known.data
-            ) else { continue }
-            let distance = FaceIdentification.distance(observation, storedObservation)
-            if best == nil || distance < best!.distance {
+        for known in decodedPrints {
+            let distance = FaceIdentification.distance(observation, known.observation)
+            if distance < best?.distance ?? .greatestFiniteMagnitude {
                 best = (known.name, distance)
             }
         }
         guard let best, best.distance <= Self.matchThreshold else { return nil }
         return best
+    }
+
+    private static func decode(_ prints: [KnownFacePrint]) -> [(name: String, observation: VNFeaturePrintObservation)] {
+        prints.compactMap { known in
+            guard let observation = try? NSKeyedUnarchiver.unarchivedObject(
+                ofClass: VNFeaturePrintObservation.self, from: known.data
+            ) else { return nil }
+            return (known.name, observation)
+        }
     }
 
     private func load() {

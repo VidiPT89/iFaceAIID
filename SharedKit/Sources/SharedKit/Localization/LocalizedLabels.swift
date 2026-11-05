@@ -1,6 +1,4 @@
-/// Maps each detection enum to its localized display string, so the four
-/// views (iOS/macOS × Hands/Face) share one definition instead of repeating
-/// the same switch statement.
+/// Maps each detection enum to its localized display string in one place.
 extension DetectedGesture {
     public var localizedKey: LocalizedKey {
         switch self {
@@ -36,9 +34,8 @@ extension Handedness {
 }
 
 extension DetectedHand {
-    /// "Left hand — Open palm" (or just the gesture text when handedness is
-    /// unknown) — shared by the iOS and macOS `CameraView`s, which were
-    /// previously duplicating this exact formatting.
+    /// "Left hand — Open palm", or just the gesture text when handedness is
+    /// unknown.
     @MainActor
     public func localizedLabel(using localization: LocalizationManager) -> String {
         let gestureText = localization.string(gesture.localizedKey)

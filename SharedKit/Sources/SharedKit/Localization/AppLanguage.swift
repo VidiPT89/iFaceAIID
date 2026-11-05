@@ -26,7 +26,6 @@ public enum LocalizedKey: String, Sendable {
     case faceIdRegistrationFailed
     case cameraStart
     case cameraStop
-    case cameraPermission
     case cameraDenied
     case cameraError
     case gestureNone
@@ -65,8 +64,17 @@ public enum LocalizedKey: String, Sendable {
     case faceIdNoFaceDetected
     case faceIdSampleSaved
     case faceIdUnknown
+    case faceIdRemove
     case faceIdPrivacyNote
 }
+
+#if os(iOS)
+private let cameraDeniedPT = "Permissão de câmara recusada. Ativa-a em Definições → Face AI ID → Câmara."
+private let cameraDeniedEN = "Camera permission was denied. Enable it in Settings → Face AI ID → Camera."
+#else
+private let cameraDeniedPT = "Permissão de câmara recusada. Ativa-a em Definições do Sistema → Privacidade e Segurança → Câmara."
+private let cameraDeniedEN = "Camera permission was denied. Enable it in System Settings → Privacy & Security → Camera."
+#endif
 
 private let strings: [AppLanguage: [LocalizedKey: String]] = [
     .portuguese: [
@@ -82,8 +90,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdRegistrationFailed: "Não foi possível guardar este rosto. Tenta novamente com boa iluminação.",
         .cameraStart: "Iniciar câmara",
         .cameraStop: "Parar câmara",
-        .cameraPermission: "É necessário dar permissão de acesso à câmara.",
-        .cameraDenied: "Permissão de câmara recusada. Ativa-a em Definições do Sistema → Privacidade e Segurança → Câmara.",
+        .cameraDenied: cameraDeniedPT,
         .cameraError: "Não foi possível aceder à câmara.",
         .gestureNone: "Nenhum gesto detetado",
         .gestureThumbsUp: "Fixe 👍",
@@ -121,6 +128,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdNoFaceDetected: "Nenhum rosto detetado.",
         .faceIdSampleSaved: "Amostra guardada",
         .faceIdUnknown: "Rosto não reconhecido",
+        .faceIdRemove: "Remover",
         .faceIdPrivacyNote: "Identificação aproximada, guardada só neste dispositivo — nunca enviada para nenhum servidor.",
     ],
     .english: [
@@ -136,8 +144,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdRegistrationFailed: "Could not save this face. Try again with good lighting.",
         .cameraStart: "Start camera",
         .cameraStop: "Stop camera",
-        .cameraPermission: "Camera access permission is required.",
-        .cameraDenied: "Camera permission was denied. Enable it in System Settings → Privacy & Security → Camera.",
+        .cameraDenied: cameraDeniedEN,
         .cameraError: "Could not access the camera.",
         .gestureNone: "No gesture detected",
         .gestureThumbsUp: "Thumbs up 👍",
@@ -175,6 +182,7 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdNoFaceDetected: "No face detected.",
         .faceIdSampleSaved: "Sample saved",
         .faceIdUnknown: "Face not recognized",
+        .faceIdRemove: "Remove",
         .faceIdPrivacyNote: "Approximate identification, stored only on this device — never sent to any server.",
     ],
 ]

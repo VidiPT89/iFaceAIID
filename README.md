@@ -21,7 +21,7 @@
 - ✅ Head movement recognition — nodding yes, shaking no, head tilt — from Vision's roll/yaw/pitch
 - ✅ Approximate face identification — register a face and get recognized afterwards, using Vision's `VNGenerateImageFeaturePrintRequest` (no bundled third-party model; less precise than the web app's dedicated face-recognition net — see note below)
 - ✅ 100% on-device processing — no video or biometric data ever leaves the Mac or the iPhone
-- ✅ Shared `SharedKit` Swift package — one classification core for both native apps
+- ✅ Shared `SharedKit` Swift package — the classifiers, the camera/Vision capture service and the whole UI live here once; each app target is just its `@main` entry point, icons and Info.plist
 - ✅ Animated hand-landmark and face-contour overlays drawn live over the camera preview
 - ✅ Fluid SwiftUI animations, including an animated splash screen
 - ✅ Runtime language switch — Português (PT-PT) and English
@@ -69,8 +69,8 @@ Press **Start camera** to detect hands, facial expressions and head movements to
 
 - Show a hand shape to see its label and landmark overlay.
 - Smile, nod or shake your head to see expression and movement badges.
-- Type a name and press **Register face** to save a local sample. On macOS, registration is available only while a face is detected, and the name stays filled for additional samples.
-- On macOS, a progress indicator appears during startup, which can be cancelled. If permission is denied, **Open camera settings** takes you to the relevant system settings. A missing camera has its own message.
+- Type a name and press **Register face** to save a local sample. Registration is available only while a face is detected, and the name stays filled for additional samples.
+- A progress indicator appears during startup, which can be cancelled. If permission is denied, **Open camera settings** takes you to the relevant settings. A missing camera has its own message.
 - Press **Stop camera** to stop capture and clear the current results. You can start it again without recreating the window.
 
 Switch language and appearance at any time from the toolbar.
@@ -81,7 +81,6 @@ Switch language and appearance at any time from the toolbar.
 xcodebuild -project macOS-App/iFaceAIID-Mac.xcodeproj -scheme iFaceAIID-Mac -destination 'platform=macOS' build
 xcodebuild -project iOS-App/iFaceAIID.xcodeproj -scheme iFaceAIID -destination 'generic/platform=iOS Simulator' build
 swift test --package-path SharedKit
-swift test --package-path macOS-App
 ```
 
 The macOS target uses Hardened Runtime and must be signed with the camera entitlement in
@@ -92,7 +91,7 @@ After building, verify the signed app with:
 python3 scripts/check-camera-entitlement.py /path/to/iFaceAIID-Mac.app
 ```
 
-`swift test` runs unit tests for the gesture and expression classifiers in `SharedKit` — no camera or device needed, since those are the parts most sensitive to threshold/geometry regressions.
+`swift test` runs unit tests for the gesture and expression classifiers and the camera lifecycle (permission handling, start/stop races) in `SharedKit` — no camera or device needed.
 
 ## 📄 License
 
