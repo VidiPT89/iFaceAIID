@@ -29,20 +29,28 @@ public struct ControlsBar: View {
 
     public var body: some View {
         HStack(spacing: 12) {
-            Picker("", selection: languageSelection) {
+            Picker(localization.string(.languageLabel), selection: languageSelection) {
                 ForEach(AppLanguage.allCases, id: \.self) { lang in
                     Text(lang.displayCode).tag(lang)
                 }
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
             .frame(width: 100)
 
-            Picker("", selection: themeSelection) {
-                Image(systemName: "sun.max.fill").tag(AppTheme.light)
-                Image(systemName: "moon.fill").tag(AppTheme.dark)
-                Image(systemName: "circle.lefthalf.filled").tag(AppTheme.system)
+            Picker(localization.string(.themeLabel), selection: themeSelection) {
+                Image(systemName: "sun.max.fill")
+                    .accessibilityLabel(localization.string(.themeLight))
+                    .tag(AppTheme.light)
+                Image(systemName: "moon.fill")
+                    .accessibilityLabel(localization.string(.themeDark))
+                    .tag(AppTheme.dark)
+                Image(systemName: "circle.lefthalf.filled")
+                    .accessibilityLabel(localization.string(.themeSystem))
+                    .tag(AppTheme.system)
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
             .frame(width: 120)
 
             Button {
@@ -52,6 +60,8 @@ public struct ControlsBar: View {
                     .foregroundStyle(debugMode.isEnabled ? BrandColor.accent : .secondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(localization.string(debugMode.isEnabled ? .debugHide : .debugShow))
+            .help(localization.string(debugMode.isEnabled ? .debugHide : .debugShow))
         }
     }
 }
