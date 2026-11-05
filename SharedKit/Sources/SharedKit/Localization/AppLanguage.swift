@@ -65,6 +65,13 @@ public enum LocalizedKey: String, Sendable {
     case faceIdSampleSaved
     case faceIdUnknown
     case faceIdRemove
+    case languageLabel
+    case themeLabel
+    case themeLight
+    case themeDark
+    case themeSystem
+    case debugShow
+    case debugHide
     case faceIdPrivacyNote
 }
 
@@ -129,6 +136,13 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdSampleSaved: "Amostra guardada",
         .faceIdUnknown: "Rosto não reconhecido",
         .faceIdRemove: "Remover",
+        .languageLabel: "Idioma",
+        .themeLabel: "Aspeto",
+        .themeLight: "Claro",
+        .themeDark: "Escuro",
+        .themeSystem: "Sistema",
+        .debugShow: "Mostrar números de diagnóstico",
+        .debugHide: "Esconder números de diagnóstico",
         .faceIdPrivacyNote: "Identificação aproximada, guardada só neste dispositivo — nunca enviada para nenhum servidor.",
     ],
     .english: [
@@ -183,6 +197,13 @@ private let strings: [AppLanguage: [LocalizedKey: String]] = [
         .faceIdSampleSaved: "Sample saved",
         .faceIdUnknown: "Face not recognized",
         .faceIdRemove: "Remove",
+        .languageLabel: "Language",
+        .themeLabel: "Appearance",
+        .themeLight: "Light",
+        .themeDark: "Dark",
+        .themeSystem: "System",
+        .debugShow: "Show diagnostic numbers",
+        .debugHide: "Hide diagnostic numbers",
         .faceIdPrivacyNote: "Approximate identification, stored only on this device — never sent to any server.",
     ],
 ]
